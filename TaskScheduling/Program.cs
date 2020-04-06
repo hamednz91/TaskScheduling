@@ -154,7 +154,7 @@ namespace TaskScheduling
                 numberOfMachines2 = int.Parse(row["NoM2"]);
             }
 
-            int B = numberOfProducts/kMin + 1;
+            int B = numberOfProducts / kMin + 1;
 
             int[] wTj = new int[numberOfProducts];
 
@@ -257,7 +257,7 @@ namespace TaskScheduling
         /// <summary>
         /// Model for 50 jobs
         /// </summary>
-       static bool CheckExistInBatch(Batch batch, int jobIndex)
+        static bool CheckExistInBatch(Batch batch, int jobIndex)
         {
             return batch.JobsIndice.Any(t => t == jobIndex);
         }
@@ -280,7 +280,7 @@ namespace TaskScheduling
 
             switch (option)
             {
-                    #region Case 1
+                #region Case 1
 
                 case 1:
                     List<Batch> myBatches = noneEmptybatches;
@@ -316,7 +316,7 @@ namespace TaskScheduling
                         myBatches[i].machineNumber[1] = minIndexT2;
 
                         foreach (int j in myBatches[i].JobsIndice)
-                            Tj[j] = Math.Max((double) t2[minIndexT2] - d[j], 0.0);
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
                     }
 
                     sol.TimeofMachinesStep1 = t1;
@@ -329,9 +329,9 @@ namespace TaskScheduling
                     break;
 
 
-                    #endregion
+                #endregion
 
-                    #region Case 2
+                #region Case 2
 
                 case 2:
                     List<Batch> nonEmptyBatchesSortedByP1j = noneEmptybatches;
@@ -368,7 +368,7 @@ namespace TaskScheduling
                         batch.machineNumber[1] = minIndexT2;
 
                         foreach (int j in batch.JobsIndice)
-                            Tj[j] = Math.Max((double) t2[minIndexT2] - d[j], 0.0);
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
                     }
 
                     sol.TimeofMachinesStep1 = t1;
@@ -380,9 +380,9 @@ namespace TaskScheduling
                     break;
 
 
-                    #endregion
+                #endregion
 
-                    #region Case 3
+                #region Case 3
 
                 case 3:
                     List<Batch> nonEmptyBatchesSortedByP1jPlusP2j = noneEmptybatches;
@@ -420,7 +420,7 @@ namespace TaskScheduling
                         batch.machineNumber[1] = minIndexT2;
 
                         foreach (int j in batch.JobsIndice)
-                            Tj[j] = Math.Max((double) t2[minIndexT2] - d[j], 0.0);
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
                     }
 
                     sol.TimeofMachinesStep1 = t1;
@@ -431,9 +431,9 @@ namespace TaskScheduling
                     break;
 
 
-                    #endregion
+                #endregion
 
-                    #region Case 4
+                #region Case 4
 
                 case 4:
 
@@ -444,8 +444,8 @@ namespace TaskScheduling
                         for (int j = 0; j < nonEmptyBatchesSortedByMeanUrgent[b].UrgentMetric.Count; j++)
                         {
                             nonEmptyBatchesSortedByMeanUrgent[b].UrgentMetric[j] =
-                                (double) (d[nonEmptyBatchesSortedByMeanUrgent[b].JobsIndice[j]] - t_Now)/
-                                (double) (nonEmptyBatchesSortedByMeanUrgent[b].Pbs[0] +
+                                (double)(d[nonEmptyBatchesSortedByMeanUrgent[b].JobsIndice[j]] - t_Now) /
+                                (double)(nonEmptyBatchesSortedByMeanUrgent[b].Pbs[0] +
                                           nonEmptyBatchesSortedByMeanUrgent[b].Pbs[1]);
                         }
                     }
@@ -486,7 +486,7 @@ namespace TaskScheduling
 
 
                         foreach (int j in batch.JobsIndice)
-                            Tj[j] = Math.Max((double) t2[minIndexT2] - d[j], 0.0);
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
                     }
 
                     sol.TimeofMachinesStep1 = t1;
@@ -497,6 +497,54 @@ namespace TaskScheduling
 
                     break;
 
+                #endregion
+
+                #region Case 5
+
+                case 5:
+
+                    List<Batch> nonEmptyBatchesSortedByBatchIndex = noneEmptybatches.OrderBy(a => a.batchIndex).ToList();
+
+                    foreach (var batch in nonEmptyBatchesSortedByBatchIndex)
+                    {
+                        double T1 = t1.Min(a => a);
+
+                        int minIndexT1 = Array.IndexOf(t1, T1);
+
+                        double T2 = t2.Min(a => a);
+
+                        int minIndexT2 = Array.IndexOf(t2, T2);
+
+                        double T = T2 - T1;
+
+                        if (batch.Pbs[0] - T >= 0)
+                        {
+                            t1[minIndexT1] += batch.Pbs[0];
+
+                            t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
+                        }
+                        else
+                        {
+                            t1[minIndexT1] = t2[minIndexT2];
+
+                            t2[minIndexT2] += batch.Pbs[1];
+                        }
+
+                        batch.machineNumber[0] = minIndexT1;
+
+                        batch.machineNumber[1] = minIndexT2;
+
+                        foreach (int j in batch.JobsIndice)
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
+                    }
+
+                    sol.TimeofMachinesStep1 = t1;
+
+                    sol.TimeofMachinesStep2 = t2;
+
+                    sol.BatchesAllocatedToMachines = nonEmptyBatchesSortedByBatchIndex;
+
+                    break;
                     #endregion
 
             }
@@ -523,9 +571,9 @@ namespace TaskScheduling
             double[] T = model.DelayOfJobs;
 
             for (int j = 0; j < wT.Length; j++)
-                z += ((wT[j]*T[j]) + (sigma[j]*Pi[j]));
+                z += ((wT[j] * T[j]) + (sigma[j] * Pi[j]));
 
-            z += Ww*Vb;
+            z += Ww * Vb;
 
             return z;
 
@@ -662,7 +710,7 @@ namespace TaskScheduling
             {
                 eta1J[i] = wTj[i];
 
-                eta2J[i] = (double) 1/(d[i] - (double) (p1[i] + p2[i]));
+                eta2J[i] = (double)1 / (d[i] - (double)(p1[i] + p2[i]));
 
                 eta3J[i] = 1;
 
@@ -771,7 +819,7 @@ namespace TaskScheduling
 
                         batches[i].Family = -1;
 
-                        batches[i].machineNumber = new int[] {-1, -1};
+                        batches[i].machineNumber = new int[] { -1, -1 };
 
                         batches[i].batchIndex = -1;
 
@@ -811,7 +859,7 @@ namespace TaskScheduling
 
                         virtualBatches[i].Family = -1;
 
-                        virtualBatches[i].machineNumber = new int[] {-1, -1};
+                        virtualBatches[i].machineNumber = new int[] { -1, -1 };
 
                         virtualBatches[i].batchIndex = -1;
                     }
@@ -894,7 +942,7 @@ namespace TaskScheduling
 
                         for (int j = 0; j < batches[b].BatchCandidateList.Count; j++)
                         {
-                            eta3J[batches[b].BatchCandidateList[j]] = (double) 1/
+                            eta3J[batches[b].BatchCandidateList[j]] = (double)1 /
                                                                       (double)
                                                                       ((kMax - batches[b].SizeOfJobs.Sum()) -
                                                                        Sj[batches[b].BatchCandidateList[j]] + 1);
@@ -909,7 +957,7 @@ namespace TaskScheduling
                                 //  }
                             }
 
-                            tauJB[batches[b].BatchCandidateList[j]] = sumOfPhiJXs/batches[b].JobsIndice.Count;
+                            tauJB[batches[b].BatchCandidateList[j]] = sumOfPhiJXs / batches[b].JobsIndice.Count;
 
                         }
 
@@ -971,37 +1019,37 @@ namespace TaskScheduling
 
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
                             {
-                                batches[b].Eta1jCandidates[l] = batches[b].Eta1jCandidates[l]/sumOfEta1;
+                                batches[b].Eta1jCandidates[l] = batches[b].Eta1jCandidates[l] / sumOfEta1;
 
-                                batches[b].Eta2jCandidates[l] = batches[b].Eta2jCandidates[l]/sumOfEta2;
+                                batches[b].Eta2jCandidates[l] = batches[b].Eta2jCandidates[l] / sumOfEta2;
 
-                                batches[b].Eta3jCandidates[l] = batches[b].Eta3jCandidates[l]/sumOfEta3;
+                                batches[b].Eta3jCandidates[l] = batches[b].Eta3jCandidates[l] / sumOfEta3;
 
-                                batches[b].Eta4jCandidates[l] = batches[b].Eta4jCandidates[l]/sumOfEta4;
+                                batches[b].Eta4jCandidates[l] = batches[b].Eta4jCandidates[l] / sumOfEta4;
 
-                                batches[b].TauJBCandidates[l] = batches[b].TauJBCandidates[l]/sumOfTauJB;
+                                batches[b].TauJBCandidates[l] = batches[b].TauJBCandidates[l] / sumOfTauJB;
 
-                                batches[b].TauJCandidates[l] = batches[b].TauJCandidates[l]/sumOfTauJ;
+                                batches[b].TauJCandidates[l] = batches[b].TauJCandidates[l] / sumOfTauJ;
                             }
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
                             {
                                 batches[b].JobCandidateSelectionProbability[l] =
-                                    (Math.Pow((batches[b].TauJBCandidates[l] + batches[b].TauJCandidates[l]), alpha)*
-                                     Math.Pow(batches[b].Eta1jCandidates[l], beta1)*
-                                     Math.Pow(batches[b].Eta2jCandidates[l], beta2)*
-                                     Math.Pow(batches[b].Eta3jCandidates[l], beta3)*
+                                    (Math.Pow((batches[b].TauJBCandidates[l] + batches[b].TauJCandidates[l]), alpha) *
+                                     Math.Pow(batches[b].Eta1jCandidates[l], beta1) *
+                                     Math.Pow(batches[b].Eta2jCandidates[l], beta2) *
+                                     Math.Pow(batches[b].Eta3jCandidates[l], beta3) *
                                      Math.Pow(batches[b].Eta4jCandidates[l], beta4)
-                                    )/
-                                    (Math.Pow((sumOfTauJB + sumOfTauJB), alpha)*
-                                     Math.Pow(sumOfEta1, beta1)*
-                                     Math.Pow(sumOfEta2, beta2)*
-                                     Math.Pow(sumOfEta3, beta3)*
+                                    ) /
+                                    (Math.Pow((sumOfTauJB + sumOfTauJB), alpha) *
+                                     Math.Pow(sumOfEta1, beta1) *
+                                     Math.Pow(sumOfEta2, beta2) *
+                                     Math.Pow(sumOfEta3, beta3) *
                                      Math.Pow(sumOfEta4, beta4));
                                 sumOfSum += batches[b].JobCandidateSelectionProbability[l];
                             }
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
                                 batches[b].JobCandidateSelectionProbability[l] =
-                                    batches[b].JobCandidateSelectionProbability[l]/
+                                    batches[b].JobCandidateSelectionProbability[l] /
                                     sumOfSum;
 
 
@@ -1025,15 +1073,14 @@ namespace TaskScheduling
 
                                 selectedJobs[batches[b].BatchCandidateList[ind]] = true;
 
-                                if (p1[ind] > maxP1j)
+                                if (p1[batches[b].BatchCandidateList[ind]] > maxP1j)
                                 {
-                                    maxP1j = p1[ind];
+                                    maxP1j = p1[batches[b].BatchCandidateList[ind]];
                                 }
-                                if (p2[ind] > maxP2j)
+                                if (p2[batches[b].BatchCandidateList[ind]] > maxP2j)
                                 {
-                                    maxP2j = p2[ind];
+                                    maxP2j = p2[batches[b].BatchCandidateList[ind]];
                                 }
-
                                 batches[b].BatchCandidateList.RemoveAt(ind);
 
                                 batches[b].JobCandidateSelectionProbability.RemoveAt(ind);
@@ -1096,7 +1143,7 @@ namespace TaskScheduling
 
                             batches[b].batchIndex = -1;
 
-                            batches[b].machineNumber = new int[] {-1, -1};
+                            batches[b].machineNumber = new int[] { -1, -1 };
 
                         }
 
@@ -1108,15 +1155,7 @@ namespace TaskScheduling
 
                         batches[b].Pbs[1] = maxP2j;
 
-                        //for (int j = 0; j < batches[b].JobsIndice.Count; j++)
-                        //{
-                        //    batches[b].Pjbs[batches[b].JobsIndice[j], 0] = maxP1j;
-
-                        //    batches[b].Pjbs[batches[b].JobsIndice[j], 1] = maxP2j;
-                        //}
-
-
-                        #endregion
+                       #endregion
 
 
                     }
@@ -1187,7 +1226,7 @@ namespace TaskScheduling
                         virtualBatches[j].Pbs = new double[2]; //batch processing time in step 1 & 2
                         // virtualBatches[j].SumOfJobSizes = 0;
                         virtualBatches[j].Family = -1;
-                        virtualBatches[j].machineNumber = new int[] {-1, -1};
+                        virtualBatches[j].machineNumber = new int[] { -1, -1 };
                         virtualBatches[j].batchIndex = -1;
                     }
 
@@ -1229,7 +1268,7 @@ namespace TaskScheduling
 
                     for (int i = 0; i < A; i++)
                     {
-                        int opSelector = RouletteWheelSelection(new[] {.3, .2, .2, .1, .2});
+                        int opSelector = RouletteWheelSelection(new[] { .3, .2, .2, .1, .2 });
 
                         switch (opSelector)
                         {
@@ -1250,7 +1289,7 @@ namespace TaskScheduling
                                 int selectedBatchIndex = r.Next(BatchesGreaterThanKmin.Count);
 
                                 selectedBatchIndex = BatchesGreaterThanKmin[selectedBatchIndex].batchIndex;
-                                    // real index in nonemptyBatches using batch index field
+                                // real index in nonemptyBatches using batch index field
 
                                 int selectedBatchFamily = nonEmptyBatches[selectedBatchIndex].Family;
 
@@ -1525,7 +1564,7 @@ namespace TaskScheduling
                                 newBatch.Pbs = new double[2]; //batch processing time in step 1 & 2
                                 //newBatch.SizeOfJobs.Sum() = 0;
                                 newBatch.Family = -1;
-                                newBatch.machineNumber = new int[] {-1, -1};
+                                newBatch.machineNumber = new int[] { -1, -1 };
                                 newBatch.batchIndex = -1;
 
                                 #endregion
@@ -1554,7 +1593,7 @@ namespace TaskScheduling
                                 double avgSjOfSelectedVirBatch =
                                     VirtualBatchesMoreThanKmin[virtualBatchIndex].SizeOfJobs.Average();
 
-                                int nm = r.Next(kMin, Convert.ToInt32(Math.Ceiling((kMax)/avgSjOfSelectedVirBatch)));
+                                int nm = r.Next(kMin, Convert.ToInt32(Math.Ceiling((kMax) / avgSjOfSelectedVirBatch)));
 
                                 int jobIndexOP2 = -1;
 
@@ -1801,7 +1840,7 @@ namespace TaskScheduling
                                 double avgSjOfSelectedVirBatchOP5 =
                                     nonEmptyBatches[op5SelectedBatchIndex].SizeOfJobs.Average();
 
-                                int op5n = r.Next(1, Convert.ToInt32(Math.Ceiling(kMax/avgSjOfSelectedVirBatchOP5)));
+                                int op5n = r.Next(1, Convert.ToInt32(Math.Ceiling(kMax / avgSjOfSelectedVirBatchOP5)));
 
                                 for (int j = 0;
                                     j < Math.Min(virtualBatches[selectedVirtualBatchIndex5].JobsIndice.Count, op5n);
@@ -1903,6 +1942,24 @@ namespace TaskScheduling
                                 #endregion Remove Bandom Batch
 
                                 break;
+                            case 6:
+
+                                #region OP7 Transform from one nonEmpty to another
+
+                                
+
+                                #endregion Remove Bandom Batch
+
+                                break;
+                            case 7:
+
+                                #region OP8 Change nonEmpty batchindice
+
+
+
+                                #endregion Remove Bandom Batch
+
+                                break;
                         }
 
                         #region Adding batches to Ant tour, Calculate TauJB and mJX 
@@ -1950,7 +2007,7 @@ namespace TaskScheduling
                         R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
 
                     for (int j = 0; j < tauJ.Length; j++)
-                        tauJ[j] = (double) 1/(double) (R[j] + 1);
+                        tauJ[j] = (double)1 / (double)(R[j] + 1);
 
                     foreach (var nonemptybatch in nonEmptyBatches)
                     {
@@ -1981,7 +2038,7 @@ namespace TaskScheduling
                     for (int j = 0; j < phiJX.GetLength(1); j++)
                     {
                         phiJX[i, j] +=
-                            ((double) mJX[i, j]*((double) Q/(double) bestAnt.Cost));
+                            ((double)mJX[i, j] * ((double)Q / (double)bestAnt.Cost));
                     }
                 }
 
@@ -1989,15 +2046,15 @@ namespace TaskScheduling
                 {
                     for (int j = 0; j < phiJX.GetLength(1); j++)
                     {
-                        phiJX[i, j] *= (double) (1 - rho);
+                        phiJX[i, j] *= (double)(1 - rho);
                     }
                 }
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] += (rho*(double) 1/(double) (R[j] + 1));
+                    tauJ[j] += (rho * (double)1 / (double)(R[j] + 1));
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] *= (double) (1 - rho);
+                    tauJ[j] *= (double)(1 - rho);
 
                 #endregion
 
@@ -2040,7 +2097,8 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = Console.ReadLine();
+            string pathToExcelFile = "D:\\129.xls";
+            //string pathToExcelFile = Console.ReadLine();
 
 
             while ((!File.Exists(pathToExcelFile)))
@@ -2051,9 +2109,9 @@ namespace TaskScheduling
 
                 pathToExcelFile = Console.ReadLine();
             }
-            
+
             Run_ACO(pathToExcelFile);
-            
+
 
             Console.ReadLine();
         }
