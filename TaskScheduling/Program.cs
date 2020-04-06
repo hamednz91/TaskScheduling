@@ -1155,7 +1155,7 @@ namespace TaskScheduling
 
                         batches[b].Pbs[1] = maxP2j;
 
-                       #endregion
+                        #endregion
 
 
                     }
@@ -1189,7 +1189,7 @@ namespace TaskScheduling
 
                     model.NumberOfNonEmptyBatches = nonEmptyBatches.Count;
 
-                    sol = Algorithm1(1, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                    sol = Algorithm1(4, nonEmptyBatches, t1, t2, Tj, d, t_now);
 
                     model.DelayOfJobs = sol.Tj;
 
@@ -1205,6 +1205,36 @@ namespace TaskScheduling
                     {
                         bestAnt = ant[k];
                     }
+
+                    #region myNonEmptyBatch Init
+
+                    Batch[] myNonEmptyBatches = new Batch[nonEmptyBatches.Count];
+
+                    for (int x = 0; x < myNonEmptyBatches.Length; x++)
+                    {
+                        myNonEmptyBatches[x] = new Batch();
+                        myNonEmptyBatches[x].BatchCandidateList = nonEmptyBatches[x].BatchCandidateList;
+                        myNonEmptyBatches[x].JobCandidateSelectionProbability =
+                            nonEmptyBatches[x].JobCandidateSelectionProbability;
+                        myNonEmptyBatches[x].Eta1jCandidates = nonEmptyBatches[x].Eta1jCandidates;
+                        myNonEmptyBatches[x].Eta2jCandidates = nonEmptyBatches[x].Eta2jCandidates;
+                        myNonEmptyBatches[x].Eta3jCandidates = nonEmptyBatches[x].Eta3jCandidates;
+                        myNonEmptyBatches[x].Eta4jCandidates =
+                            nonEmptyBatches[x].Eta4jCandidates;
+                        myNonEmptyBatches[x].TauJBCandidates = nonEmptyBatches[x].TauJBCandidates;
+                        myNonEmptyBatches[x].TauJCandidates = nonEmptyBatches[x].TauJCandidates;
+                        myNonEmptyBatches[x].JobsIndice = nonEmptyBatches[x].JobsIndice;
+                        myNonEmptyBatches[x].SizeOfJobs = nonEmptyBatches[x].SizeOfJobs;
+                        myNonEmptyBatches[x].UrgentMetric = nonEmptyBatches[x].UrgentMetric;
+                        myNonEmptyBatches[x].Pbs = nonEmptyBatches[x].Pbs;
+                        //batch processing time in step 1 & 2
+                        myNonEmptyBatches[x].Family = nonEmptyBatches[x].Family;
+                        myNonEmptyBatches[x].machineNumber = nonEmptyBatches[x].machineNumber;
+                        myNonEmptyBatches[x].batchIndex = nonEmptyBatches[x].batchIndex;
+                    }
+
+                    #endregion
+
 
                     #region Virtual Batch Init
 
@@ -1266,9 +1296,13 @@ namespace TaskScheduling
                         }
                     }
 
+
+
                     for (int i = 0; i < A; i++)
                     {
                         int opSelector = RouletteWheelSelection(new[] { .3, .2, .2, .1, .2 });
+
+                        opSelector = 7;
 
                         switch (opSelector)
                         {
@@ -1946,18 +1980,38 @@ namespace TaskScheduling
 
                                 #region OP7 Transform from one nonEmpty to another
 
-                                
 
-                                #endregion Remove Bandom Batch
+
+                                #endregion Transform from one nonEmpty to another
 
                                 break;
                             case 7:
 
                                 #region OP8 Change nonEmpty batchindice
+                                bool stopOP8flag = nonEmptyBatches.Count < 2;
 
+                                if (stopOP8flag) break;
 
+                                Batch[] batchesForExchangeBatchIndice = myNonEmptyBatches;
 
-                                #endregion Remove Bandom Batch
+                                int OP8selectedBatchIndex1 = r.Next(batchesForExchangeBatchIndice.Length);
+
+                                int OP8selectedBatchIndex2 = -1;
+
+                                do
+                                    OP8selectedBatchIndex2 = r.Next(batchesForExchangeBatchIndice.Length);
+                                while (OP8selectedBatchIndex1 == OP8selectedBatchIndex2);
+
+                                int temp_BatchIndex = batchesForExchangeBatchIndice[OP8selectedBatchIndex1].batchIndex;
+
+                                batchesForExchangeBatchIndice[OP8selectedBatchIndex1].batchIndex =
+                                  batchesForExchangeBatchIndice[OP8selectedBatchIndex2].batchIndex;
+
+                                batchesForExchangeBatchIndice[OP8selectedBatchIndex2].batchIndex = temp_BatchIndex;
+
+                                nonEmptyBatches = batchesForExchangeBatchIndice.ToList();
+
+                                #endregion Change nonEmpty batchindice
 
                                 break;
                         }
@@ -1980,7 +2034,7 @@ namespace TaskScheduling
 
                         Tj = new double[N];
 
-                        sol = Algorithm1(1, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                        sol = Algorithm1(5, nonEmptyBatches, t1, t2, Tj, d, t_now);
 
                         model.DelayOfJobs = sol.Tj;
 
@@ -2097,7 +2151,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\129.xls";
+            string pathToExcelFile = "D:\\504.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
