@@ -96,6 +96,8 @@ namespace TaskScheduling
 
             public int batchIndex;
 
+            public double AverageDueTimeofJobToDelayImportanceFactor; // dj/wj
+
 
         }
 
@@ -827,6 +829,7 @@ namespace TaskScheduling
 
                         batches[i].batchIndex = -1;
 
+                        batches[i].AverageDueTimeofJobToDelayImportanceFactor = -1;
                     }
 
                     for (int i = 0; i < virtualBatches.Length; i++)
@@ -866,6 +869,9 @@ namespace TaskScheduling
                         virtualBatches[i].machineNumber = new int[] { -1, -1 };
 
                         virtualBatches[i].batchIndex = -1;
+
+                        virtualBatches[i].AverageDueTimeofJobToDelayImportanceFactor = -1;
+
                     }
 
                     List<Batch> nonEmptyBatches = new List<Batch>();
@@ -1173,13 +1179,26 @@ namespace TaskScheduling
 
                     int count = 0;
 
+                    
+
                     for (int b = 0; b < batches.Length; b++)
                         if (batches[b].JobsIndice.Count > 0)
                         {
+                            double average = 0;
+
                             for (int j = 0; j < batches[b].JobsIndice.Count; j++)
+                            {
                                 batches[b].UrgentMetric.Add(1);
 
+                                average += d[batches[b].JobsIndice[j]] / wTj[batches[b].JobsIndice[j]];
+                            }
+                            average = average / (double) batches[b].JobsIndice.Count;
+
+                            batches[b].AverageDueTimeofJobToDelayImportanceFactor = average;
+
                             batches[b].batchIndex = count++;
+
+
                             nonEmptyBatches.Add(batches[b]);
                         }
 
@@ -1301,19 +1320,19 @@ namespace TaskScheduling
                         }
                     }
 
-                    
+
 
                     for (int i = 0; i < A; i++)
                     {
                         int opSelector = RouletteWheelSelection(new[] { .3, .2, .2, .1, .2 });
 
-                        opSelector = 7;
+                        opSelector = 2;
 
                         switch (opSelector)
                         {
                             case 0:
 
-                                #region OP1 Drop
+                                #region OP0 Drop
 
                                 List<Batch> BatchesGreaterThanKmin = new List<Batch>();
 
@@ -1411,7 +1430,7 @@ namespace TaskScheduling
                                 break;
                             case 1:
 
-                                #region OP2 Exchange between 2 nonempty
+                                #region OP1 Exchange between 2 nonempty
 
                                 bool stopOP2flag = nonEmptyBatches.Count < 2;
 
@@ -1573,7 +1592,7 @@ namespace TaskScheduling
                                 break;
                             case 2:
 
-                                #region OP3 Create new batch
+                                #region OP2 Create new batch
 
                                 bool stopOP3Flag = virtualBatches.All(vb => vb.JobsIndice.Count < kMin);
 
@@ -1588,6 +1607,7 @@ namespace TaskScheduling
                                 int virtualBatchIndex = -1;
 
                                 List<Batch> VirtualBatchesMoreThanKmin = new List<Batch>();
+
 
                                 foreach (var batch in virtualBatches)
                                     if (batch.JobsIndice.Count >= kMin)
@@ -1686,24 +1706,46 @@ namespace TaskScheduling
                                 }
 
 
+                                Batch[] nonEmptyBatchesOrderByAverageDjToWj =myNonEmptyBatches;
+
                                 // if (selectedFamilyVirtualBatch.Count(item => item) >= VirtualBatchesMoreThanKmin.Count) break;
 
                                 if (newBatch.JobsIndice.Count >= kMin)
                                 {
                                     newBatch.batchIndex = nonEmptyBatches.Count;
 
-                                    nonEmptyBatches.Add(newBatch);
-
+                                    double average = 0;
                                     foreach (var item in newBatch.JobsIndice)
+                                    {
+                                        average += d[item] / wTj[item];
+
                                         selectedJobs[item] = true;
+
+                                    }
+                                    average = average / (double)newBatch.JobsIndice.Count;
+
+                                    newBatch.AverageDueTimeofJobToDelayImportanceFactor = average;
+                                    
+                                    nonEmptyBatchesOrderByAverageDjToWj.ToList().Add(newBatch);
+
                                 }
+
+                                nonEmptyBatchesOrderByAverageDjToWj =
+                                    nonEmptyBatchesOrderByAverageDjToWj.OrderBy(b => b.AverageDueTimeofJobToDelayImportanceFactor).ToArray();
+
+                                for (int j = 0; j < nonEmptyBatchesOrderByAverageDjToWj.Length; j++)
+                                {
+                                    nonEmptyBatchesOrderByAverageDjToWj[j].batchIndex =j;
+                                }
+
+                                nonEmptyBatches = nonEmptyBatchesOrderByAverageDjToWj.ToList();
 
                                 #endregion
 
                                 break;
                             case 3:
 
-                                #region OP4 Exchange between virtual batch and nonempty
+                                #region OP3 Exchange between virtual batch and nonempty
 
                                 bool stopOP4Flag = virtualBatches.All(vb => vb.JobsIndice.Count == 0) ||
                                                    nonEmptyBatches.Count == 0;
@@ -1833,7 +1875,7 @@ namespace TaskScheduling
                                 break;
                             case 4:
 
-                                #region OP5 Add
+                                #region OP4 Add
 
                                 bool stopOP5Flag = virtualBatches.All(vb => vb.JobsIndice.Count == 0) ||
                                                    nonEmptyBatches.Count == 0;
@@ -1929,7 +1971,7 @@ namespace TaskScheduling
                                 break;
                             case 5:
 
-                                #region OP6 Remove Random Batch
+                                #region OP5 Remove Random Batch
 
                                 bool stopOP6Flag = nonEmptyBatches.Count == 0;
 
@@ -1983,7 +2025,7 @@ namespace TaskScheduling
                                 break;
                             case 6:
 
-                                #region OP7 Transform from one nonEmpty to another
+                                #region OP6 Transform from one nonEmpty to another
 
 
 
@@ -1992,7 +2034,7 @@ namespace TaskScheduling
                                 break;
                             case 7:
 
-                                #region OP8 Change nonEmpty batchindice
+                                #region OP7 Change nonEmpty batchindice
 
                                 bool stopOP8flag = nonEmptyBatches.Count < 2;
 
@@ -2152,7 +2194,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\504.xls";
+            string pathToExcelFile = "D:\\129.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
