@@ -273,63 +273,8 @@ namespace TaskScheduling
             return false;
         }
 
-        static Sol Algorithm1(List<Batch> allocatedBatches, double[] t1, double[] t2, double[] Tj, double[] d,
-            double t_Now)
-        {
-            Sol sol = new Sol();
-
-            List<Batch> allocatedBatchesSortedByBatchIndex = allocatedBatches.OrderBy(a => a.batchIndex).ToList();
-
-            foreach (var batch in allocatedBatchesSortedByBatchIndex)
-            {
-                double T1 = t1.Min(a => a);
-
-                int minIndexT1 = Array.IndexOf(t1, T1);
-
-                double T2 = t2.Min(a => a);
-
-                int minIndexT2 = Array.IndexOf(t2, T2);
-
-                double T = T2 - T1;
-
-                if (batch.Pbs[0] - T >= 0)
-                {
-                    t1[minIndexT1] += batch.Pbs[0];
-
-                    t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
-                }
-                else
-                {
-                    t1[minIndexT1] = t2[minIndexT2];
-
-                    t2[minIndexT2] += batch.Pbs[1];
-                }
-
-                batch.machineNumber[0] = minIndexT1;
-
-                batch.machineNumber[1] = minIndexT2;
-
-                foreach (int j in batch.JobsIndice)
-                    Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
-
-
-                sol.TimeofMachinesStep1 = t1;
-
-                sol.TimeofMachinesStep2 = t2;
-
-                sol.BatchesAllocatedToMachines = allocatedBatchesSortedByBatchIndex;
-
-
-            }
-
-            sol.Tj = Tj;
-
-            return sol;
-        }
-
-
         static Sol Algorithm1(int option, List<Batch> noneEmptybatches, double[] t1, double[] t2, double[] Tj, double[] d,
-            double t_Now)
+              double t_Now)
         {
             Sol sol = new Sol();
 
@@ -551,6 +496,58 @@ namespace TaskScheduling
                     sol.BatchesAllocatedToMachines = nonEmptyBatchesSortedByMeanUrgent;
 
                     break;
+
+                #endregion
+
+                #region Case 5
+
+                case 5:
+
+                    List<Batch> allocatedBatchesSortedByBatchIndex =
+                        noneEmptybatches.OrderBy(a => a.batchIndex).ToList();
+
+                    foreach (var batch in allocatedBatchesSortedByBatchIndex)
+                    {
+                        double T1 = t1.Min(a => a);
+
+                        int minIndexT1 = Array.IndexOf(t1, T1);
+
+                        double T2 = t2.Min(a => a);
+
+                        int minIndexT2 = Array.IndexOf(t2, T2);
+
+                        double T = T2 - T1;
+
+                        if (batch.Pbs[0] - T >= 0)
+                        {
+                            t1[minIndexT1] += batch.Pbs[0];
+
+                            t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
+                        }
+                        else
+                        {
+                            t1[minIndexT1] = t2[minIndexT2];
+
+                            t2[minIndexT2] += batch.Pbs[1];
+                        }
+
+                        batch.machineNumber[0] = minIndexT1;
+
+                        batch.machineNumber[1] = minIndexT2;
+
+                        foreach (int j in batch.JobsIndice)
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
+
+                    }
+
+                    sol.TimeofMachinesStep1 = t1;
+
+                    sol.TimeofMachinesStep2 = t2;
+
+                    sol.BatchesAllocatedToMachines = allocatedBatchesSortedByBatchIndex;
+
+                    break;
+
 
                     #endregion
 
@@ -1260,7 +1257,7 @@ namespace TaskScheduling
                         virtualBatches[j].UrgentMetric = new List<double>();
                         virtualBatches[j].Pjbs = new int[N, 2]; //jobs of batch processing time in 2 steps
                         virtualBatches[j].Pbs = new double[2]; //batch processing time in step 1 & 2
-                        // virtualBatches[j].SumOfJobSizes = 0;
+                                                               // virtualBatches[j].SumOfJobSizes = 0;
                         virtualBatches[j].Family = -1;
                         virtualBatches[j].machineNumber = new int[] { -1, -1 };
                         virtualBatches[j].batchIndex = -1;
@@ -1602,7 +1599,7 @@ namespace TaskScheduling
                                 newBatch.SizeOfJobs = new List<int>();
                                 newBatch.UrgentMetric = new List<double>();
                                 newBatch.Pbs = new double[2]; //batch processing time in step 1 & 2
-                                //newBatch.SizeOfJobs.Sum() = 0;
+                                                              //newBatch.SizeOfJobs.Sum() = 0;
                                 newBatch.Family = -1;
                                 newBatch.machineNumber = new int[] { -1, -1 };
                                 newBatch.batchIndex = -1;
@@ -2035,7 +2032,7 @@ namespace TaskScheduling
 
                         Tj = new double[N];
 
-                        sol = Algorithm1(sol.BatchesAllocatedToMachines, t1, t2, Tj, d, t_now);
+                        sol = Algorithm1(5, sol.BatchesAllocatedToMachines, t1, t2, Tj, d, t_now);
 
                         model.DelayOfJobs = sol.Tj;
 
