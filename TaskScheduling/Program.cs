@@ -273,6 +273,61 @@ namespace TaskScheduling
             return false;
         }
 
+        static Sol Algorithm1(List<Batch> allocatedBatches, double[] t1, double[] t2, double[] Tj, double[] d,
+            double t_Now)
+        {
+            Sol sol = new Sol();
+
+            List<Batch> allocatedBatchesSortedByBatchIndex = allocatedBatches.OrderBy(a => a.batchIndex).ToList();
+
+            foreach (var batch in allocatedBatchesSortedByBatchIndex)
+            {
+                double T1 = t1.Min(a => a);
+
+                int minIndexT1 = Array.IndexOf(t1, T1);
+
+                double T2 = t2.Min(a => a);
+
+                int minIndexT2 = Array.IndexOf(t2, T2);
+
+                double T = T2 - T1;
+
+                if (batch.Pbs[0] - T >= 0)
+                {
+                    t1[minIndexT1] += batch.Pbs[0];
+
+                    t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
+                }
+                else
+                {
+                    t1[minIndexT1] = t2[minIndexT2];
+
+                    t2[minIndexT2] += batch.Pbs[1];
+                }
+
+                batch.machineNumber[0] = minIndexT1;
+
+                batch.machineNumber[1] = minIndexT2;
+
+                foreach (int j in batch.JobsIndice)
+                    Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
+
+
+                sol.TimeofMachinesStep1 = t1;
+
+                sol.TimeofMachinesStep2 = t2;
+
+                sol.BatchesAllocatedToMachines = allocatedBatchesSortedByBatchIndex;
+
+
+            }
+
+            sol.Tj = Tj;
+
+            return sol;
+        }
+
+
         static Sol Algorithm1(int option, List<Batch> noneEmptybatches, double[] t1, double[] t2, double[] Tj, double[] d,
             double t_Now)
         {
@@ -497,54 +552,6 @@ namespace TaskScheduling
 
                     break;
 
-                #endregion
-
-                #region Case 5
-
-                case 5:
-
-                    List<Batch> nonEmptyBatchesSortedByBatchIndex = noneEmptybatches.OrderBy(a => a.batchIndex).ToList();
-
-                    foreach (var batch in nonEmptyBatchesSortedByBatchIndex)
-                    {
-                        double T1 = t1.Min(a => a);
-
-                        int minIndexT1 = Array.IndexOf(t1, T1);
-
-                        double T2 = t2.Min(a => a);
-
-                        int minIndexT2 = Array.IndexOf(t2, T2);
-
-                        double T = T2 - T1;
-
-                        if (batch.Pbs[0] - T >= 0)
-                        {
-                            t1[minIndexT1] += batch.Pbs[0];
-
-                            t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
-                        }
-                        else
-                        {
-                            t1[minIndexT1] = t2[minIndexT2];
-
-                            t2[minIndexT2] += batch.Pbs[1];
-                        }
-
-                        batch.machineNumber[0] = minIndexT1;
-
-                        batch.machineNumber[1] = minIndexT2;
-
-                        foreach (int j in batch.JobsIndice)
-                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
-                    }
-
-                    sol.TimeofMachinesStep1 = t1;
-
-                    sol.TimeofMachinesStep2 = t2;
-
-                    sol.BatchesAllocatedToMachines = nonEmptyBatchesSortedByBatchIndex;
-
-                    break;
                     #endregion
 
             }
@@ -1234,7 +1241,6 @@ namespace TaskScheduling
                     }
 
                     #endregion
-
 
                     #region Virtual Batch Init
 
@@ -2034,7 +2040,7 @@ namespace TaskScheduling
 
                         Tj = new double[N];
 
-                        sol = Algorithm1(5, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                        sol = Algorithm1(sol.BatchesAllocatedToMachines, t1, t2, Tj, d, t_now);
 
                         model.DelayOfJobs = sol.Tj;
 
