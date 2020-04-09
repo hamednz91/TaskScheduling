@@ -1210,6 +1210,8 @@ namespace TaskScheduling
                         bestAnt = ant[k];
                     }
 
+                    nonEmptyBatches = sol.BatchesAllocatedToMachines;
+
                     #region myNonEmptyBatch Init
 
                     Batch[] myNonEmptyBatches = new Batch[nonEmptyBatches.Count];
@@ -1299,7 +1301,7 @@ namespace TaskScheduling
                         }
                     }
 
-
+                    
 
                     for (int i = 0; i < A; i++)
                     {
@@ -1991,6 +1993,7 @@ namespace TaskScheduling
                             case 7:
 
                                 #region OP8 Change nonEmpty batchindice
+
                                 bool stopOP8flag = nonEmptyBatches.Count < 2;
 
                                 if (stopOP8flag) break;
