@@ -2022,11 +2022,6 @@ namespace TaskScheduling
                                 break;
                         }
 
-                        #region Adding batches to Ant tour, Calculate TauJB and mJX 
-
-
-                        #endregion
-
                         for (int j = 0; j < selectedJobs.Length; j++)
                             PiJ[j] = !selectedJobs[j] ? 1 : 0;
 
