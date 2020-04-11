@@ -1179,7 +1179,7 @@ namespace TaskScheduling
 
                     int count = 0;
 
-                    
+
 
                     for (int b = 0; b < batches.Length; b++)
                         if (batches[b].JobsIndice.Count > 0)
@@ -1192,7 +1192,7 @@ namespace TaskScheduling
 
                                 average += d[batches[b].JobsIndice[j]] / wTj[batches[b].JobsIndice[j]];
                             }
-                            average = average / (double) batches[b].JobsIndice.Count;
+                            average = average / (double)batches[b].JobsIndice.Count;
 
                             batches[b].AverageDueTimeofJobToDelayImportanceFactor = average;
 
@@ -1237,25 +1237,8 @@ namespace TaskScheduling
 
                     for (int x = 0; x < myNonEmptyBatches.Length; x++)
                     {
-                        myNonEmptyBatches[x] = new Batch();
-                        myNonEmptyBatches[x].BatchCandidateList = nonEmptyBatches[x].BatchCandidateList;
-                        myNonEmptyBatches[x].JobCandidateSelectionProbability =
-                            nonEmptyBatches[x].JobCandidateSelectionProbability;
-                        myNonEmptyBatches[x].Eta1jCandidates = nonEmptyBatches[x].Eta1jCandidates;
-                        myNonEmptyBatches[x].Eta2jCandidates = nonEmptyBatches[x].Eta2jCandidates;
-                        myNonEmptyBatches[x].Eta3jCandidates = nonEmptyBatches[x].Eta3jCandidates;
-                        myNonEmptyBatches[x].Eta4jCandidates =
-                            nonEmptyBatches[x].Eta4jCandidates;
-                        myNonEmptyBatches[x].TauJBCandidates = nonEmptyBatches[x].TauJBCandidates;
-                        myNonEmptyBatches[x].TauJCandidates = nonEmptyBatches[x].TauJCandidates;
-                        myNonEmptyBatches[x].JobsIndice = nonEmptyBatches[x].JobsIndice;
-                        myNonEmptyBatches[x].SizeOfJobs = nonEmptyBatches[x].SizeOfJobs;
-                        myNonEmptyBatches[x].UrgentMetric = nonEmptyBatches[x].UrgentMetric;
-                        myNonEmptyBatches[x].Pbs = nonEmptyBatches[x].Pbs;
-                        //batch processing time in step 1 & 2
-                        myNonEmptyBatches[x].Family = nonEmptyBatches[x].Family;
-                        myNonEmptyBatches[x].machineNumber = nonEmptyBatches[x].machineNumber;
-                        myNonEmptyBatches[x].batchIndex = nonEmptyBatches[x].batchIndex;
+                        myNonEmptyBatches[x] = nonEmptyBatches[x];
+                        
                     }
 
                     #endregion
@@ -1706,7 +1689,7 @@ namespace TaskScheduling
                                 }
 
 
-                                Batch[] nonEmptyBatchesOrderByAverageDjToWj =myNonEmptyBatches;
+                                List<Batch> nonEmptyBatchesAverageDjToWj = nonEmptyBatches;
 
                                 // if (selectedFamilyVirtualBatch.Count(item => item) >= VirtualBatchesMoreThanKmin.Count) break;
 
@@ -1725,20 +1708,21 @@ namespace TaskScheduling
                                     average = average / (double)newBatch.JobsIndice.Count;
 
                                     newBatch.AverageDueTimeofJobToDelayImportanceFactor = average;
-                                    
-                                    nonEmptyBatchesOrderByAverageDjToWj.ToList().Add(newBatch);
+
+                                    nonEmptyBatchesAverageDjToWj.Add(newBatch);
+
 
                                 }
 
-                                nonEmptyBatchesOrderByAverageDjToWj =
-                                    nonEmptyBatchesOrderByAverageDjToWj.OrderBy(b => b.AverageDueTimeofJobToDelayImportanceFactor).ToArray();
+                                nonEmptyBatchesAverageDjToWj =
+                                    nonEmptyBatchesAverageDjToWj.OrderBy(b => b.AverageDueTimeofJobToDelayImportanceFactor).ToList();
 
-                                for (int j = 0; j < nonEmptyBatchesOrderByAverageDjToWj.Length; j++)
-                                {
-                                    nonEmptyBatchesOrderByAverageDjToWj[j].batchIndex =j;
-                                }
+                                //for (int j = 0; j < nonEmptyBatchesOrderByAverageDjToWj.Length; j++)
+                                //{
+                                //    nonEmptyBatchesOrderByAverageDjToWj[j].batchIndex =j;
+                                //}
 
-                                nonEmptyBatches = nonEmptyBatchesOrderByAverageDjToWj.ToList();
+                                nonEmptyBatches = nonEmptyBatchesAverageDjToWj;
 
                                 #endregion
 
@@ -2077,7 +2061,7 @@ namespace TaskScheduling
 
                         Tj = new double[N];
 
-                        sol = Algorithm1(5, sol.BatchesAllocatedToMachines, t1, t2, Tj, d, t_now);
+                        sol = Algorithm1(5, nonEmptyBatches, t1, t2, Tj, d, t_now);
 
                         model.DelayOfJobs = sol.Tj;
 
