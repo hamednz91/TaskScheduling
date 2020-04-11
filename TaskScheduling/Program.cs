@@ -1238,7 +1238,7 @@ namespace TaskScheduling
                     for (int x = 0; x < myNonEmptyBatches.Length; x++)
                     {
                         myNonEmptyBatches[x] = nonEmptyBatches[x];
-                        
+
                     }
 
                     #endregion
@@ -1655,8 +1655,6 @@ namespace TaskScheduling
                                              selectedJobFromSelectedVirtualBatchOP3.Count(item => item) <
                                              selectedVirBatchLength);
 
-
-
                                     if (!selectedJobFromSelectedVirtualBatchOP3[jobIndexOP2] &&
                                         Sj[jobOP2] + newBatch.SizeOfJobs.Sum() < kMax)
                                     {
@@ -1709,18 +1707,27 @@ namespace TaskScheduling
 
                                     newBatch.AverageDueTimeofJobToDelayImportanceFactor = average;
 
-                                    nonEmptyBatchesAverageDjToWj.Add(newBatch);
+                                    bool isSet = false;
 
+                                    for (int j = 0; j < nonEmptyBatchesAverageDjToWj.Count; j++)
+                                    {
+                                        if (average > nonEmptyBatchesAverageDjToWj[j].AverageDueTimeofJobToDelayImportanceFactor)
+                                        {
+                                            nonEmptyBatchesAverageDjToWj.Insert(j + 1, newBatch);
+                                            isSet = true;
+                                            for (int l = j + 2; l < nonEmptyBatchesAverageDjToWj.Count; l++)
+                                            {
+                                                nonEmptyBatchesAverageDjToWj.ToArray()[l].batchIndex++;
+                                            }
+                                        }
+                                    }
+
+                                    if (!isSet)
+                                    {
+                                        nonEmptyBatchesAverageDjToWj.Insert(0, newBatch);
+                                    }
 
                                 }
-
-                                nonEmptyBatchesAverageDjToWj =
-                                    nonEmptyBatchesAverageDjToWj.OrderBy(b => b.AverageDueTimeofJobToDelayImportanceFactor).ToList();
-
-                                //for (int j = 0; j < nonEmptyBatchesOrderByAverageDjToWj.Length; j++)
-                                //{
-                                //    nonEmptyBatchesOrderByAverageDjToWj[j].batchIndex =j;
-                                //}
 
                                 nonEmptyBatches = nonEmptyBatchesAverageDjToWj;
 
