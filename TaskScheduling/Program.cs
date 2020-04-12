@@ -1309,7 +1309,7 @@ namespace TaskScheduling
                     {
                         int opSelector = RouletteWheelSelection(new[] { .3, .2, .2, .1, .2 });
 
-                        opSelector = 2;
+                        //opSelector = 2;
 
                         switch (opSelector)
                         {
@@ -1336,7 +1336,7 @@ namespace TaskScheduling
 
                                 int selectedBatchLength = nonEmptyBatches[selectedBatchIndex].JobsIndice.Count;
 
-                                int a = r.Next(1, selectedBatchLength - kMin);
+                                int a = r.Next(1, Math.Max(1, selectedBatchLength - kMin));
 
                                 for (int j = 0; j < a; j++)
                                 {
@@ -1895,7 +1895,6 @@ namespace TaskScheduling
 
                                 bool[] selectedBatchOP5 = new bool[nonEmptyBatches.Count];
 
-
                                 do
                                 {
                                     op5SelectedBatchIndex = r.Next(nonEmptyBatches.Count);
@@ -1909,6 +1908,10 @@ namespace TaskScheduling
                                 if (nonEmptyBatches[op5SelectedBatchIndex].Family != selectedVirtualBatchIndex5)
                                     break;
 
+                                if (nonEmptyBatches[op5SelectedBatchIndex].JobsIndice.Count == 0)
+                                {
+                                    break;
+                                }
                                 double avgSjOfSelectedVirBatchOP5 =
                                     nonEmptyBatches[op5SelectedBatchIndex].SizeOfJobs.Average();
 
@@ -2018,7 +2021,92 @@ namespace TaskScheduling
 
                                 #region OP6 Transform from one nonEmpty to another
 
+                                bool stopOP6flag = nonEmptyBatches.Count < 2;
 
+                                if (stopOP6flag) break;
+
+                                bool[] selectbatchesOP6 = new bool[nonEmptyBatches.Count];
+
+                                int selectedBatchIndex1OP6 = r.Next(nonEmptyBatches.Count);
+
+                                selectbatchesOP6[selectedBatchIndex1OP6] = true;
+
+                                int selectedFamilyOP6 = nonEmptyBatches[selectedBatchIndex1OP6].Family;
+
+                                int selectedBatchIndex2OP6 = -1;
+
+
+                                do
+                                {
+                                    selectedBatchIndex2OP6 = r.Next(nonEmptyBatches.Count);
+
+                                    if (!selectbatchesOP6[selectedBatchIndex2OP6])
+                                        selectbatchesOP6[selectedBatchIndex2OP6] = true;
+
+                                } while ((selectedBatchIndex1OP6 == selectedBatchIndex2OP6 ||
+                                          selectedFamilyOP6 != nonEmptyBatches[selectedBatchIndex2OP6].Family) &&
+                                         selectbatchesOP6.Count(item => item) < nonEmptyBatches.Count);
+
+                                if (selectedFamilyOP6 != nonEmptyBatches[selectedBatchIndex2OP6].Family) break;
+
+                                int selectedBatchLength1OP6 = nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice.Count;
+
+                                int c = r.Next(1, Math.Max(1, selectedBatchLength1OP6 - kMin));
+
+                                for (int j = 0; j < c; j++)
+                                {
+                                    int jobIndex1 = r.Next(selectedBatchLength1OP6);
+
+                                    if ((nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Sum() +
+                                             nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1] <= kMax))
+                                    {
+                                        int job1 = nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice[jobIndex1];
+
+                                        int jobSize1 = nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1];
+
+                                        nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice.Add(job1);
+
+                                        nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Add(jobSize1);
+
+                                        nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice.RemoveAt(jobIndex1);
+
+                                        nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs.RemoveAt(jobIndex1);
+
+                                        double maxP1 = p1[nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice)
+                                            if (p1[t] > maxP1)
+                                                maxP1 = p1[t];
+
+                                        nonEmptyBatches[selectedBatchIndex1OP6].Pbs[0] = maxP1;
+
+                                        double maxP2 = p2[nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice)
+                                            if (p2[t] > maxP2)
+                                                maxP2 = p2[t];
+
+                                        nonEmptyBatches[selectedBatchIndex1OP6].Pbs[1] = maxP2;
+
+                                        double maxP12 = p1[nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice)
+                                            if (p1[t] > maxP12)
+                                                maxP12 = p1[t];
+
+                                        nonEmptyBatches[selectedBatchIndex2OP6].Pbs[0] = maxP12;
+
+                                        double maxP22 = p2[nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice)
+                                            if (p2[t] > maxP22)
+                                                maxP22 = p2[t];
+
+                                        nonEmptyBatches[selectedBatchIndex2OP6].Pbs[1] = maxP22;
+
+                                    }
+
+                                }
 
                                 #endregion Transform from one nonEmpty to another
 
