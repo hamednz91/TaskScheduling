@@ -1332,9 +1332,9 @@ namespace TaskScheduling
                                 selectedBatchIndex = BatchesGreaterThanKmin[selectedBatchIndex].batchIndex;
                                 // real index in nonemptyBatches using batch index field
 
-                                int selectedBatchFamily = nonEmptyBatches[selectedBatchIndex].Family;
+                                int selectedBatchFamily = BatchesGreaterThanKmin[selectedBatchIndex].Family;
 
-                                int selectedBatchLength = nonEmptyBatches[selectedBatchIndex].JobsIndice.Count;
+                                int selectedBatchLength = BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice.Count;
 
                                 int a = r.Next(1, Math.Max(1, selectedBatchLength - kMin));
 
@@ -1348,10 +1348,10 @@ namespace TaskScheduling
                                         #region Add Selected Jobs to Virtual Batch
 
                                         virtualBatches[selectedBatchFamily].JobsIndice.Add(
-                                            nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]);
+                                            BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]);
 
                                         virtualBatches[selectedBatchFamily].SizeOfJobs.Add(
-                                            Sj[nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]]);
+                                            Sj[BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]]);
 
                                         //virtualBatches[selectedBatchFamily].SizeOfJobs.Sum() +=
                                         //    Sj[nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]];
@@ -1364,20 +1364,26 @@ namespace TaskScheduling
 
                                         #region Remove Selected Jobs from NonEmptyBatches and Update Batch (size of jobs, Urgent metric, pbs if needed)
 
-                                        bool flag1 = p1[nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]] >=
-                                                     nonEmptyBatches[selectedBatchIndex].Pbs[0];
+                                        bool flag1 = p1[BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]] >=
+                                                     BatchesGreaterThanKmin[selectedBatchIndex].Pbs[0];
 
-                                        bool flag2 = p2[nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]] >=
-                                                     nonEmptyBatches[selectedBatchIndex].Pbs[1];
+                                        bool flag2 = p2[BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]] >=
+                                                     BatchesGreaterThanKmin[selectedBatchIndex].Pbs[1];
 
-                                        selectedJobs[nonEmptyBatches[selectedBatchIndex].JobsIndice[jobIndex]] = false;
+                                        selectedJobs[BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]] = false;
 
+                                        BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
+
+                                        BatchesGreaterThanKmin[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
+
+                                        BatchesGreaterThanKmin[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
+                                        
+                                        //-------------also remove from nonEmptyBatches------------------------
                                         nonEmptyBatches[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
 
                                         nonEmptyBatches[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
 
                                         nonEmptyBatches[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
-
 
                                         selectedBatchLength = nonEmptyBatches[selectedBatchIndex].JobsIndice.Count;
 
