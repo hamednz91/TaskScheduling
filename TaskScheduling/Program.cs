@@ -1329,7 +1329,7 @@ namespace TaskScheduling
 
                                 int selectedBatchIndex = r.Next(BatchesGreaterThanKmin.Count);
 
-                                selectedBatchIndex = BatchesGreaterThanKmin[selectedBatchIndex].batchIndex;
+                                //selectedBatchIndex = BatchesGreaterThanKmin[selectedBatchIndex].batchIndex;
                                 // real index in nonemptyBatches using batch index field
 
                                 int selectedBatchFamily = BatchesGreaterThanKmin[selectedBatchIndex].Family;
@@ -1379,11 +1379,11 @@ namespace TaskScheduling
                                         BatchesGreaterThanKmin[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
                                         
                                         //-------------also remove from nonEmptyBatches------------------------
-                                        nonEmptyBatches[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
+                                        //nonEmptyBatches[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
 
-                                        nonEmptyBatches[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
+                                        //nonEmptyBatches[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
 
-                                        nonEmptyBatches[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
+                                        //nonEmptyBatches[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
 
                                         selectedBatchLength = nonEmptyBatches[selectedBatchIndex].JobsIndice.Count;
 
