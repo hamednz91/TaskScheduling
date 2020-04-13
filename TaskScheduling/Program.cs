@@ -1385,7 +1385,7 @@ namespace TaskScheduling
 
                                         //nonEmptyBatches[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
 
-                                        selectedBatchLength = nonEmptyBatches[selectedBatchIndex].JobsIndice.Count;
+                                        selectedBatchLength = BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice.Count;
 
                                         if (selectedBatchLength <= 0) continue;
 
@@ -2279,7 +2279,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\129.xls";
+            string pathToExcelFile = "D:\\125.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
