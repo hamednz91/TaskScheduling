@@ -1307,7 +1307,13 @@ namespace TaskScheduling
 
                     for (int i = 0; i < A; i++)
                     {
-                        int opSelector = RouletteWheelSelection(new[] { .3, .2, .2, .1, .2 });
+                        List<Batch> BatchesGreaterThanKmin = new List<Batch>();
+
+                        foreach (var item in nonEmptyBatches)
+                            if (item.JobsIndice.Count > kMin)
+                                BatchesGreaterThanKmin.Add(item);
+
+                        int opSelector = RouletteWheelSelection(new[] { .1, .1, .2, .1, .2, .1, .1, .1 });
 
                         //opSelector = 2;
 
@@ -1316,12 +1322,6 @@ namespace TaskScheduling
                             case 0:
 
                                 #region OP0 Drop
-
-                                List<Batch> BatchesGreaterThanKmin = new List<Batch>();
-
-                                foreach (var item in nonEmptyBatches)
-                                    if (item.JobsIndice.Count > kMin)
-                                        BatchesGreaterThanKmin.Add(item);
 
                                 bool stopOP1flag = BatchesGreaterThanKmin.Count == 0;
 
@@ -1377,7 +1377,7 @@ namespace TaskScheduling
                                         BatchesGreaterThanKmin[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
 
                                         BatchesGreaterThanKmin[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
-                                        
+
                                         //-------------also remove from nonEmptyBatches------------------------
                                         //nonEmptyBatches[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
 
@@ -2027,19 +2027,30 @@ namespace TaskScheduling
 
                                 #region OP6 Transform from one nonEmpty to another
 
-                                bool stopOP6flag = nonEmptyBatches.Count < 2;
+                                bool stopOP6flag = nonEmptyBatches.Count < 2 || nonEmptyBatches.All(item => item.JobsIndice.Count <= kMin);
 
                                 if (stopOP6flag) break;
 
-                                bool[] selectbatchesOP6 = new bool[nonEmptyBatches.Count];
+                                bool[] selectbatchesOP6 = new bool[BatchesGreaterThanKmin.Count];
 
-                                int selectedBatchIndex1OP6 = r.Next(nonEmptyBatches.Count);
+                                int selectedBatchIndex1OP6;
 
-                                selectbatchesOP6[selectedBatchIndex1OP6] = true;
+                                do
+                                {
+                                    selectedBatchIndex1OP6 = r.Next(BatchesGreaterThanKmin.Count);
 
-                                int selectedFamilyOP6 = nonEmptyBatches[selectedBatchIndex1OP6].Family;
+                                    if (!selectbatchesOP6[selectedBatchIndex1OP6])
+                                    {
+                                        selectbatchesOP6[selectedBatchIndex1OP6] = true;
+                                    }
 
-                                int selectedBatchIndex2OP6 = -1;
+                                } while (selectbatchesOP6.Count(item => item) < BatchesGreaterThanKmin.Count);
+
+                                if (selectbatchesOP6.Count(item => item) >= BatchesGreaterThanKmin.Count) break;
+
+                                int selectedFamilyOP6 = BatchesGreaterThanKmin[selectedBatchIndex1OP6].Family;
+
+                                int selectedBatchIndex2OP6;
 
 
                                 do
@@ -2051,32 +2062,38 @@ namespace TaskScheduling
 
                                 } while ((selectedBatchIndex1OP6 == selectedBatchIndex2OP6 ||
                                           selectedFamilyOP6 != nonEmptyBatches[selectedBatchIndex2OP6].Family) &&
+                                          nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Sum() >= kMax &&
                                          selectbatchesOP6.Count(item => item) < nonEmptyBatches.Count);
 
                                 if (selectedFamilyOP6 != nonEmptyBatches[selectedBatchIndex2OP6].Family) break;
 
-                                int selectedBatchLength1OP6 = nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice.Count;
+                                int selectedBatchLength1OP6 = BatchesGreaterThanKmin[selectedBatchIndex1OP6].JobsIndice.Count;
 
-                                int c = r.Next(1, Math.Max(1, selectedBatchLength1OP6 - kMin));
+                                double minMetric =
+                                    (kMax - nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Sum())/
+                                    nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Average();
+
+                                // minMetric wouldn`t be integer, and the Minimum would be double as well. is it correct to convert to integer?
+                                int c = r.Next(1, (int)Math.Min(minMetric, (selectedBatchLength1OP6 - kMin)));
 
                                 for (int j = 0; j < c; j++)
                                 {
                                     int jobIndex1 = r.Next(selectedBatchLength1OP6);
 
                                     if ((nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Sum() +
-                                             nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1] <= kMax))
+                                             BatchesGreaterThanKmin[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1] <= kMax))
                                     {
-                                        int job1 = nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice[jobIndex1];
+                                        int job1 = BatchesGreaterThanKmin[selectedBatchIndex1OP6].JobsIndice[jobIndex1];
 
-                                        int jobSize1 = nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1];
+                                        int jobSize1 = BatchesGreaterThanKmin[selectedBatchIndex1OP6].SizeOfJobs[jobIndex1];
 
                                         nonEmptyBatches[selectedBatchIndex2OP6].JobsIndice.Add(job1);
 
                                         nonEmptyBatches[selectedBatchIndex2OP6].SizeOfJobs.Add(jobSize1);
 
-                                        nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice.RemoveAt(jobIndex1);
+                                        BatchesGreaterThanKmin[selectedBatchIndex1OP6].JobsIndice.RemoveAt(jobIndex1);
 
-                                        nonEmptyBatches[selectedBatchIndex1OP6].SizeOfJobs.RemoveAt(jobIndex1);
+                                        BatchesGreaterThanKmin[selectedBatchIndex1OP6].SizeOfJobs.RemoveAt(jobIndex1);
 
                                         double maxP1 = p1[nonEmptyBatches[selectedBatchIndex1OP6].JobsIndice[0]];
 
@@ -2279,7 +2296,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\125.xls";
+            string pathToExcelFile = "D:\\504.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
