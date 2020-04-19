@@ -84,6 +84,8 @@ namespace TaskScheduling
 
             public List<double> UrgentMetric;
 
+            public List<double> DueTime; //d[j] Due time of jobs
+
             //public int SumOfJobSizes;
 
             public int[] machineNumber; //machineNumber[in_step1,in_step2]
@@ -100,7 +102,6 @@ namespace TaskScheduling
 
 
         }
-
         struct Ant
         {
             public List<Batch> Tour;
@@ -812,6 +813,8 @@ namespace TaskScheduling
 
                         batches[i].UrgentMetric = new List<double>();
 
+                        batches[i].DueTime = new List<double>();
+
                         batches[i].Pjbs = new int[N, 2]; //jobs of batch processing time in 2 steps
 
                         batches[i].Pbs = new double[2]; //batch processing time in step 1 & 2
@@ -852,6 +855,8 @@ namespace TaskScheduling
                         virtualBatches[i].SizeOfJobs = new List<int>();
 
                         virtualBatches[i].UrgentMetric = new List<double>();
+
+                        virtualBatches[i].DueTime = new List<double>();
 
                         virtualBatches[i].Pjbs = new int[N, 2]; //jobs of batch processing time in 2 steps
 
@@ -1138,6 +1143,8 @@ namespace TaskScheduling
 
                             batches[b].UrgentMetric = new List<double>();
 
+                            batches[b].DueTime = new List<double>();
+
                             batches[b].Pjbs = new int[N, 2];
 
                             batches[b].Pbs = new double[2];
@@ -1184,6 +1191,8 @@ namespace TaskScheduling
                             for (int j = 0; j < batches[b].JobsIndice.Count; j++)
                             {
                                 batches[b].UrgentMetric.Add(1);
+
+                                batches[b].DueTime.Add(d[batches[b].JobsIndice[j]]);
 
                                 average += d[batches[b].JobsIndice[j]] / wTj[batches[b].JobsIndice[j]];
                             }
@@ -1254,6 +1263,7 @@ namespace TaskScheduling
                         virtualBatches[j].JobsIndice = new List<int>();
                         virtualBatches[j].SizeOfJobs = new List<int>();
                         virtualBatches[j].UrgentMetric = new List<double>();
+                        virtualBatches[j].DueTime= new List<double>();
                         virtualBatches[j].Pjbs = new int[N, 2]; //jobs of batch processing time in 2 steps
                         virtualBatches[j].Pbs = new double[2]; //batch processing time in step 1 & 2
                                                                // virtualBatches[j].SumOfJobSizes = 0;
@@ -1284,6 +1294,8 @@ namespace TaskScheduling
 
                                     virtualBatches[i].UrgentMetric.Add(1);
 
+                                    virtualBatches[i].DueTime.Add(d[j]);
+
                                     if (p1[j] > virtualBatches[i].Pbs[0])
                                     {
                                         virtualBatches[i].Pbs[0] = p1[j];
@@ -1312,9 +1324,9 @@ namespace TaskScheduling
                             if (item.JobsIndice.Count > kMin)
                                 BatchesGreaterThanKmin.Add(item);
 
-                        int opSelector = RouletteWheelSelection(new[] { .1, .1, .2, .1, .1, .1, .1, .1, .1 });
+                        int opSelector = RouletteWheelSelection(new[] { .1, .1, .1, .1, .1, .1, .1, .1, .1, .1 });
 
-                        // opSelector = 8;
+                        //opSelector = 9;
 
                         switch (opSelector)
                         {
@@ -1359,6 +1371,8 @@ namespace TaskScheduling
 
                                         virtualBatches[selectedBatchFamily].UrgentMetric.Add(1);
 
+                                        virtualBatches[selectedBatchFamily].DueTime.Add(d[BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice[jobIndex]]);
+
                                         #endregion
 
                                         #region Remove Selected Jobs from NonEmptyBatches and Update Batch (size of jobs, Urgent metric, pbs if needed)
@@ -1377,12 +1391,7 @@ namespace TaskScheduling
 
                                         BatchesGreaterThanKmin[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
 
-                                        //-------------also remove from nonEmptyBatches------------------------
-                                        //nonEmptyBatches[selectedBatchIndex].JobsIndice.RemoveAt(jobIndex);
-
-                                        //nonEmptyBatches[selectedBatchIndex].SizeOfJobs.RemoveAt(jobIndex);
-
-                                        //nonEmptyBatches[selectedBatchIndex].UrgentMetric.RemoveAt(jobIndex);
+                                        BatchesGreaterThanKmin[selectedBatchIndex].DueTime.RemoveAt(jobIndex);
 
                                         selectedBatchLength = BatchesGreaterThanKmin[selectedBatchIndex].JobsIndice.Count;
 
@@ -1526,6 +1535,12 @@ namespace TaskScheduling
                                         int jobSize1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1].SizeOfJobs[jobIndex1];
                                         int jobSize2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2].SizeOfJobs[jobIndex2];
 
+                                        double urgentMetric1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1].UrgentMetric[jobIndex1];
+                                        double urgentMetric2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2].UrgentMetric[jobIndex2];
+
+                                        double dueTime1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1].DueTime[jobIndex1];
+                                        double dueTime2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2].DueTime[jobIndex2];
+
 
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex1].JobsIndice.Add(job2);
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex2].JobsIndice.Add(job1);
@@ -1533,12 +1548,25 @@ namespace TaskScheduling
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex1].SizeOfJobs.Add(jobSize2);
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex2].SizeOfJobs.Add(jobSize1);
 
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1].UrgentMetric.Add(urgentMetric2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2].UrgentMetric.Add(urgentMetric1);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1].DueTime.Add(dueTime2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2].DueTime.Add(dueTime1);
+
 
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex1].JobsIndice.RemoveAt(jobIndex1);
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex2].JobsIndice.RemoveAt(jobIndex2);
 
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex1].SizeOfJobs.RemoveAt(jobIndex1);
                                         nonEmptyBatchesAfterOPs[selectedBatchIndex2].SizeOfJobs.RemoveAt(jobIndex2);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1].UrgentMetric.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2].UrgentMetric.RemoveAt(jobIndex2);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1].DueTime.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2].DueTime.RemoveAt(jobIndex2);
+
 
                                         double maxP1 = p1[nonEmptyBatchesAfterOPs[selectedBatchIndex1].JobsIndice[0]];
 
@@ -1608,6 +1636,7 @@ namespace TaskScheduling
                                 newBatch.JobsIndice = new List<int>();
                                 newBatch.SizeOfJobs = new List<int>();
                                 newBatch.UrgentMetric = new List<double>();
+                                newBatch.DueTime = new List<double>();
                                 newBatch.Pbs = new double[2]; //batch processing time in step 1 & 2
                                                               //newBatch.SizeOfJobs.Sum() = 0;
                                 newBatch.Family = -1;
@@ -1666,8 +1695,9 @@ namespace TaskScheduling
                                         newBatch.JobsIndice.Add(jobOP2);
                                         newBatch.SizeOfJobs.Add(Sj[jobOP2]);
                                         newBatch.UrgentMetric.Add(1);
+                                        newBatch.DueTime.Add(d[jobOP2]);
                                         newBatch.Family = virtualBatchIndex;
-
+                                        
                                         if (!selectedJobFromSelectedVirtualBatchOP3[jobIndexOP2])
                                             selectedJobFromSelectedVirtualBatchOP3[jobIndexOP2] = true;
 
@@ -1690,6 +1720,7 @@ namespace TaskScheduling
                                         VirtualBatchesMoreThanKmin[virtualBatchIndex].JobsIndice.RemoveAt(jobIndexOP2);
                                         VirtualBatchesMoreThanKmin[virtualBatchIndex].SizeOfJobs.RemoveAt(jobIndexOP2);
                                         VirtualBatchesMoreThanKmin[virtualBatchIndex].UrgentMetric.RemoveAt(jobIndexOP2);
+                                        VirtualBatchesMoreThanKmin[virtualBatchIndex].DueTime.RemoveAt(jobIndexOP2);
                                         VirtualBatchesMoreThanKmin.ToArray()[virtualBatchIndex].Family = -1;
 
                                         selectedVirBatchLength =
@@ -1950,6 +1981,7 @@ namespace TaskScheduling
                                         nonEmptyBatchesAfterOPs[op5SelectedBatchIndex].JobsIndice.Add(job);
                                         nonEmptyBatchesAfterOPs[op5SelectedBatchIndex].SizeOfJobs.Add(Sj[job]);
                                         nonEmptyBatchesAfterOPs[op5SelectedBatchIndex].UrgentMetric.Add(1);
+                                        nonEmptyBatchesAfterOPs[op5SelectedBatchIndex].DueTime.Add(d[job]);
 
 
                                         double maxP1 = p1[job];
@@ -2009,6 +2041,8 @@ namespace TaskScheduling
                                     virtualBatches[selectedBatchFamily6].Family = selectedBatchFamily6;
 
                                     virtualBatches[selectedBatchFamily6].UrgentMetric.Add(1);
+
+                                    virtualBatches[selectedBatchFamily6].DueTime.Add(d[item]);
 
                                     #endregion
 
@@ -2201,6 +2235,7 @@ namespace TaskScheduling
                                 newBatchOP8.JobsIndice = new List<int>();
                                 newBatchOP8.SizeOfJobs = new List<int>();
                                 newBatchOP8.UrgentMetric = new List<double>();
+                                newBatchOP8.DueTime = new List<double>();
                                 newBatchOP8.Pbs = new double[2]; //batch processing time in step 1 & 2
                                 newBatchOP8.Family = -1;
                                 newBatchOP8.machineNumber = new int[] { -1, -1 };
@@ -2242,6 +2277,7 @@ namespace TaskScheduling
                                         newBatchOP8.JobsIndice.Add(jobOP8);
                                         newBatchOP8.SizeOfJobs.Add(Sj[jobOP8]);
                                         newBatchOP8.UrgentMetric.Add(1);
+                                        newBatchOP8.DueTime.Add(d[jobOP8]);
                                         newBatchOP8.Family = BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].Family;
 
                                         if (!selectedJobFromSelectedBatchOP8[jobIndexOP8])
@@ -2272,6 +2308,8 @@ namespace TaskScheduling
                                         BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].SizeOfJobs.RemoveAt(jobIndexOP8);
 
                                         BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].UrgentMetric.RemoveAt(jobIndexOP8);
+
+                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].DueTime.RemoveAt(jobIndexOP8);
 
                                         selectedBatchLengthOP8 =
                                             BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].JobsIndice.Count;
@@ -2339,6 +2377,181 @@ namespace TaskScheduling
                                 }
 
                                 nonEmptyBatchesAfterOPs = nonEmptyBatchesAverageDjToWjOP8;
+
+                                #endregion
+
+                                break;
+                            case 9:
+
+                                #region OP9 Exchange between 2 nonempty using D[j]
+
+                                bool stopflagOP9 = nonEmptyBatchesAfterOPs.Count < 2;
+
+                                if (stopflagOP9) break;
+
+                                bool[] selectedBatchesOP9 = new bool[nonEmptyBatchesAfterOPs.Count];
+
+                                int selectedBatchIndex1OP9 = r.Next(nonEmptyBatchesAfterOPs.Count);
+
+                                selectedBatchesOP9[selectedBatchIndex1OP9] = true;
+
+                                int selectedFamilyOP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].Family;
+
+                                int numberOfSameFamilyBatches2OP9 =
+                                    nonEmptyBatchesAfterOPs.Count(item => item.Family == selectedFamilyOP9);
+
+                                int selectedBatchIndex2OP9;
+
+                                do
+                                {
+                                    selectedBatchIndex2OP9 = r.Next(nonEmptyBatchesAfterOPs.Count);
+
+                                    if (!selectedBatchesOP9[selectedBatchIndex2OP9])
+                                        selectedBatchesOP9[selectedBatchIndex2OP9] = true;
+
+                                } while ((selectedBatchIndex1OP9 == selectedBatchIndex2OP9 ||
+                                          selectedFamilyOP9 != nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].Family) &&
+                                         selectedBatchesOP9.Count(item => item) < nonEmptyBatchesAfterOPs.Count - 1);
+
+                                if (selectedFamilyOP9 != nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].Family) break;
+
+                                int selectedBatchLength1OP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice.Count;
+                                int selectedBatchLength2OP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice.Count;
+
+                                //
+                                //can number 2 be chosen in the random selection below?
+                                //
+                                int nl = r.Next(1, Math.Min(selectedBatchLength1OP9, selectedBatchLength2OP9));
+
+                                for (int j = 0; j < nl; j++)
+                                {
+                                    int batchSize1, batchSize2 = 0;
+
+                                    int jobIndex1 =
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].DueTime.IndexOf(
+                                            nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].DueTime.Max());
+
+                                    int jobIndex2 = -1;
+
+                                  
+
+
+                                    do
+                                    {
+                                        do
+                                        {
+                                            
+                                            selectedBatchIndex2OP9 = r.Next(nonEmptyBatchesAfterOPs.Count);
+
+                                            if (!selectedBatchesOP9[selectedBatchIndex2OP9])
+                                                selectedBatchesOP9[selectedBatchIndex2OP9] = true;
+
+                                            // in batch entekhab nashode bashe
+                                        } while ((selectedBatchesOP9.Count(item => item) < nonEmptyBatchesAfterOPs.Count - 1) &&
+                                                 (selectedBatchIndex1OP9 == selectedBatchIndex2OP9 ||
+                                                 selectedFamilyOP9 != nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].Family));
+
+                                        if (selectedBatchesOP9.Count(item => item) >= nonEmptyBatchesAfterOPs.Count - 1) break;
+                                        
+                                        selectedBatchLength2OP9 =
+                                            nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice.Count;
+
+
+                                        jobIndex2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime.IndexOf(
+                                                nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime.Min());
+
+                                        int a1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs.Sum() -
+                                                 nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1];
+
+                                        batchSize1 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[jobIndex2] +
+                                                     a1;
+
+                                        int a2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs.Sum() -
+                                                 nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[jobIndex2];
+
+                                        batchSize2 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1] +
+                                                     a2;                                     
+
+                                    } while (selectedBatchesOP9.Count(item => item) < numberOfSameFamilyBatches2OP9 - 1
+                                             && (batchSize1 > kMax || batchSize2 > kMax));
+
+                                    if (selectedBatchesOP9.Count(item => item) >= nonEmptyBatchesAfterOPs.Count - 1) break;
+
+                                    if (selectedBatchesOP9.Count(item => item) < numberOfSameFamilyBatches2OP9 - 1)
+                                    {
+
+                                        int job1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice[jobIndex1];
+                                        int job2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice[jobIndex2];
+
+                                        int jobSize1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1];
+                                        int jobSize2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[jobIndex2];
+
+                                        double urgentMetric1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].UrgentMetric[jobIndex1];
+                                        double urgentMetric2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].UrgentMetric[jobIndex2];
+
+                                        double dueTime1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].DueTime[jobIndex1];
+                                        double dueTime2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime[jobIndex2];
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice.Add(job2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice.Add(job1);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs.Add(jobSize2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs.Add(jobSize1);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].UrgentMetric.Add(urgentMetric2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].UrgentMetric.Add(urgentMetric1);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].DueTime.Add(dueTime2);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime.Add(dueTime1);
+
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice.RemoveAt(jobIndex2);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs.RemoveAt(jobIndex2);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].UrgentMetric.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].UrgentMetric.RemoveAt(jobIndex2);
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].DueTime.RemoveAt(jobIndex1);
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime.RemoveAt(jobIndex2);
+
+
+                                        double maxP1 = p1[nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice)
+                                            if (p1[t] > maxP1)
+                                                maxP1 = p1[t];
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].Pbs[0] = maxP1;
+
+                                        double maxP2 = p2[nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].JobsIndice)
+                                            if (p2[t] > maxP2)
+                                                maxP2 = p2[t];
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].Pbs[1] = maxP2;
+
+
+                                        double maxP12 = p1[nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice)
+                                            if (p1[t] > maxP12)
+                                                maxP12 = p1[t];
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].Pbs[0] = maxP12;
+
+                                        double maxP22 = p2[nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice[0]];
+
+                                        foreach (int t in nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].JobsIndice)
+                                            if (p2[t] > maxP22)
+                                                maxP22 = p2[t];
+
+                                        nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].Pbs[1] = maxP22;
+                                    }
+                                }
 
                                 #endregion
 
@@ -2484,7 +2697,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\125.xls";
+            string pathToExcelFile = "D:\\504.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
