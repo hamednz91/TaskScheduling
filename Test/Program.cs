@@ -6,17 +6,9 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            int n = 1;
-            int sum = 0;
-            n = int.Parse(Console.ReadLine());
+            double a = 2.5435453524322434;
 
-            for (int i = 1; i <= n; i = i + sum)
-            {
-                Console.Write("," + i);
-                sum = sum + i;
-                Console.Write("," + sum);
-
-            }
+            double b = Math.Round(a);
 
             Console.ReadKey();
 
