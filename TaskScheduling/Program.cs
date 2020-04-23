@@ -1745,7 +1745,8 @@ namespace TaskScheduling
                                 }
 
 
-                                Batch[] nonEmptyBatchesAverageDjToWj = nonEmptyBatchesAfterOPs.ToArray();
+                                //Batch[] nonEmptyBatchesAverageDjToWjOP2 = nonEmptyBatchesAfterOPs.ToArray();
+                                List<Batch> nonEmptyBatchesAverageDjToWjOP2 = nonEmptyBatchesAfterOPs;
 
                                 // if (selectedFamilyVirtualBatch.Count(item => item) >= VirtualBatchesMoreThanKmin.Count) break;
 
@@ -1767,14 +1768,16 @@ namespace TaskScheduling
 
                                     int l = 0;
 
-                                    for (int j = 0; j < nonEmptyBatchesAverageDjToWj.Length; j++)
+                                    //for (int j = 0; j < nonEmptyBatchesAverageDjToWjOP2.Length; j++)
+                                    for (int j = 0; j < nonEmptyBatchesAverageDjToWjOP2.Count; j++)
                                     {
                                         if (average >
-                                            nonEmptyBatchesAverageDjToWj[j].AverageDueTimeofJobToDelayImportanceFactor)
+                                            nonEmptyBatchesAverageDjToWjOP2[j].AverageDueTimeofJobToDelayImportanceFactor)
                                         {
                                             newBatch.batchIndex = j + 1;
 
-                                            nonEmptyBatchesAverageDjToWj.ToList().Insert(j + 1, newBatch);
+                                            //nonEmptyBatchesAverageDjToWjOP2.ToList().Insert(j + 1, newBatch);
+                                            nonEmptyBatchesAverageDjToWjOP2.Insert(j + 1, newBatch);
 
                                             isSet = true;
 
@@ -1785,15 +1788,19 @@ namespace TaskScheduling
                                     }
 
                                     if (isSet)
-                                        for (; l < nonEmptyBatchesAverageDjToWj.Length; l++)
-                                            nonEmptyBatchesAverageDjToWj[l].batchIndex++;
+                                        //for (; l < nonEmptyBatchesAverageDjToWjOP2.Length; l++)
+                                        for (; l < nonEmptyBatchesAverageDjToWjOP2.Count; l++)
+                                            //nonEmptyBatchesAverageDjToWjOP2[l].batchIndex++;
+                                            nonEmptyBatchesAverageDjToWjOP2.ToArray()[l].batchIndex++;
                                     else
-                                        nonEmptyBatchesAverageDjToWj.ToList().Insert(0, newBatch);
+                                        //nonEmptyBatchesAverageDjToWjOP2.ToList().Insert(0, newBatch);
+                                        nonEmptyBatchesAverageDjToWjOP2.Insert(0, newBatch);
 
 
                                 }
 
-                                nonEmptyBatchesAfterOPs = nonEmptyBatchesAverageDjToWj.ToList();
+                                //nonEmptyBatchesAfterOPs = nonEmptyBatchesAverageDjToWjOP2.ToList();
+                                nonEmptyBatchesAfterOPs = nonEmptyBatchesAverageDjToWjOP2;
 
                                 #endregion
 
