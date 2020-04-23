@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LinqToExcel;
 using Remotion.Data.Linq.Clauses;
+using Remotion.FunctionalProgramming;
 
 namespace TaskScheduling
 {
@@ -1333,7 +1334,7 @@ namespace TaskScheduling
                             if (item.JobsIndice.Count > kMin)
                                 BatchesGreaterThanKmin.Add(item);
 
-                        int opSelector = RouletteWheelSelection(new[] { .1, .1, .1, .1, .1, .1, .1, .1, .1, .1 });
+                        int opSelector = RouletteWheelSelection(new[] { .1, .1, .0, .1, .1, .1, .1, .1, .0, .1, .2 });
 
                         //opSelector = 10;
 
@@ -2332,8 +2333,17 @@ namespace TaskScheduling
                                         if (!selectedJobFromSelectedBatchOP8[jobIndexOP8])
                                             selectedJobFromSelectedBatchOP8[jobIndexOP8] = true;
 
+                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].JobsIndice.RemoveAt(
+                                            jobIndexOP8);
 
+                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].SizeOfJobs.RemoveAt(
+                                            jobIndexOP8);
 
+                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].UrgentMetric.RemoveAt(
+                                            jobIndexOP8);
+
+                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].DueTime.RemoveAt(
+                                            jobIndexOP8);
 
                                         double maxP12 =
                                             p1[BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].JobsIndice[0]];
@@ -2354,19 +2364,6 @@ namespace TaskScheduling
                                                 maxP22 = p2[t];
 
                                         BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].Pbs[1] = maxP22;
-
-
-                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].JobsIndice.RemoveAt(
-                                            jobIndexOP8);
-
-                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].SizeOfJobs.RemoveAt(
-                                            jobIndexOP8);
-
-                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].UrgentMetric.RemoveAt(
-                                            jobIndexOP8);
-
-                                        BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].DueTime.RemoveAt(
-                                            jobIndexOP8);
 
                                         selectedBatchLengthOP8 =
                                             BatchesWithJobsGreaterthan2Kmin[selectedBatchIndexOP8].JobsIndice.Count;
@@ -2450,7 +2447,7 @@ namespace TaskScheduling
                                         {
                                             //nonEmptyBatchesAverageDjToWjOP8[l].batchIndex++;
                                             nonEmptyBatchesAverageDjToWjOP8[l].batchIndex++;
-                                            
+
                                         }
                                     else
                                         //nonEmptyBatchesAverageDjToWjOP8.ToList().Insert(0, newBatchOP8);
@@ -2656,291 +2653,429 @@ namespace TaskScheduling
                                 #endregion
 
                                 break;
-                                //case 10:
+                            case 10:
 
                                 #region OP10 Create new batch from VirtualBatches
 
-                                //    bool stopFlagOP10 = nonEmptyBatchesAfterOPs.All(
-                                //        aa => aa.JobsIndice.Count + virtualBatches[aa.Family].JobsIndice.Count < 2 * kMin || virtualBatches[aa.Family].JobsIndice.Count == 0);
+                                bool stopFlagOP10 = nonEmptyBatchesAfterOPs.All(
+                                    aa => aa.JobsIndice.Count + virtualBatches[aa.Family].JobsIndice.Count < 2 * kMin);
 
-                                //    if (stopFlagOP10) break;
+                                if (stopFlagOP10) break;
 
-                                //    #region New Batch Instance
+                                #region New Batch Instance
 
-                                //    Batch newBatchOP10 = new Batch();
-
-                                //    #endregion
-
-                                //    Batch[] BatchesWithJobsGreaterthan2KminOP10 =
-                                //        nonEmptyBatchesAfterOPs.Where(
-                                //            item =>
-                                //                item.JobsIndice.Count + virtualBatches[item.Family].JobsIndice.Count >=
-                                //                2 * kMin).ToArray();
-
-                                //    bool[] selectedBatchOP10 = new bool[BatchesWithJobsGreaterthan2KminOP10.Length];
-
-                                //    #region New Batch Init/Reset
-
-                                //    newBatchOP10.JobsIndice = new List<int>();
-                                //    newBatchOP10.SizeOfJobs = new List<int>();
-                                //    newBatchOP10.UrgentMetric = new List<double>();
-                                //    newBatchOP10.DueTime = new List<double>();
-                                //    newBatchOP10.Pbs = new double[2]; //batch processing time in step 1 & 2
-                                //    newBatchOP10.Family = -1;
-                                //    newBatchOP10.machineNumber = new int[] { -1, -1 };
-                                //    newBatchOP10.batchIndex = -1;
-
-                                //    #endregion
-
-                                //    int selectedBatchIndexOP10 = r.Next(BatchesWithJobsGreaterthan2KminOP10.Length);
-
-                                //    if (!selectedBatchOP10[selectedBatchIndexOP10])
-                                //        selectedBatchOP10[selectedBatchIndexOP10] = true;
-
-                                //    int selectedBatchLengthOP10 =
-                                //        BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.Count;
-
-                                //    int selectedBatchFamilyOP10 =
-                                //        BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Family;
-
-                                //    if (virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count == 0) break;
-
-                                //    int cnOP10 = r.Next(kMin,
-                                //        (selectedBatchLengthOP10 - kMin) +
-                                //        Math.Min((int)Math.Round(kMax / virtualBatches[selectedBatchFamilyOP10].SizeOfJobs.Average()),
-                                //            virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count));
-
-                                //    int selectedVirtualBatchLengthOP10 =
-                                //        virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count;
-
-
-                                //    bool[] selectedJobFromSelectedBatchOP10 = new bool[selectedBatchLengthOP10];
-
-                                //    bool[] selectedJobFromSelectedVirtualBatchOP10 = new bool[selectedVirtualBatchLengthOP10];
-
-                                //    int jobOP10, jobIndexOP10;
-
-                                //    for (int j = 0; j < cnOP10; j++)
-                                //    {
-                                //        if (selectedVirtualBatchLengthOP10 > 0)
-                                //        {
-
-                                //            do
-                                //            {
-                                //                jobIndexOP10 = r.Next(selectedVirtualBatchLengthOP10);
-
-                                //                jobOP10 =
-                                //                    virtualBatches[selectedBatchFamilyOP10].JobsIndice[
-                                //                        jobIndexOP10];
-
-                                //            } while (selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] &&
-                                //                     selectedJobFromSelectedVirtualBatchOP10.Count(item => item) <
-                                //                     selectedVirtualBatchLengthOP10);
-
-                                //            if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] &&
-                                //                Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
-                                //            {
-                                //                newBatchOP10.JobsIndice.Add(jobOP10);
-                                //                newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
-                                //                newBatchOP10.UrgentMetric.Add(1);
-                                //                newBatchOP10.DueTime.Add(d[jobOP10]);
-                                //                newBatchOP10.Family = selectedBatchFamilyOP10;
-
-                                //                if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10])
-                                //                    selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] = true;
-
-                                //                double maxP12 =
-                                //                    p1[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
-                                //                    ];
-
-                                //                foreach (
-                                //                    int t in
-                                //                    virtualBatches[selectedBatchFamilyOP10].JobsIndice)
-                                //                    if (p1[t] > maxP12)
-                                //                        maxP12 = p1[t];
-
-                                //                virtualBatches[selectedBatchFamilyOP10].Pbs[0] = maxP12;
-
-                                //                double maxP22 =
-                                //                    p2[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
-                                //                    ];
-
-                                //                foreach (
-                                //                    int t in
-                                //                    virtualBatches[selectedBatchFamilyOP10].JobsIndice)
-                                //                    if (p2[t] > maxP22)
-                                //                        maxP22 = p2[t];
-
-                                //                virtualBatches[selectedBatchFamilyOP10].Pbs[1] = maxP22;
-
-
-                                //                virtualBatches[selectedBatchFamilyOP10].JobsIndice.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                virtualBatches[selectedBatchFamilyOP10].SizeOfJobs.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                virtualBatches[selectedBatchFamilyOP10].UrgentMetric
-                                //                    .RemoveAt(jobIndexOP10);
-
-                                //                virtualBatches[selectedBatchFamilyOP10].DueTime.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                selectedVirtualBatchLengthOP10 =
-                                //                    virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count;
-
-                                //                double maxP1 = p1[jobOP10];
-
-                                //                foreach (int t in newBatchOP10.JobsIndice)
-                                //                    if (p1[t] > maxP1)
-                                //                        maxP1 = p1[t];
-
-                                //                newBatchOP10.Pbs[0] = maxP1;
-
-                                //                double maxP2 = p2[jobOP10];
-
-                                //                foreach (int t in newBatchOP10.JobsIndice)
-                                //                    if (p2[t] > maxP2)
-                                //                        maxP2 = p2[t];
-
-                                //                newBatchOP10.Pbs[1] = maxP2;
-
-                                //            }
-                                //        }
-                                //        else
-                                //        {
-                                //            do
-                                //            {
-                                //                jobIndexOP10 = r.Next(selectedBatchLengthOP10);
-
-                                //                jobOP10 =
-                                //                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[
-                                //                        jobIndexOP10];
-
-                                //            } while (selectedJobFromSelectedBatchOP10[jobIndexOP10] &&
-                                //                 selectedJobFromSelectedBatchOP10.Count(item => item) <
-                                //                 selectedBatchLengthOP10);
-
-                                //            if (!selectedJobFromSelectedBatchOP10[jobIndexOP10] &&
-                                //                Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
-                                //            {
-                                //                newBatchOP10.JobsIndice.Add(jobOP10);
-                                //                newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
-                                //                newBatchOP10.UrgentMetric.Add(1);
-                                //                newBatchOP10.DueTime.Add(d[jobOP10]);
-                                //                newBatchOP10.Family = selectedBatchFamilyOP10;
-                                //                if (!selectedJobFromSelectedBatchOP10[jobIndexOP10])
-                                //                    selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
-
-                                //                double maxP12 =
-                                //                    p1[BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[0]];
-
-                                //                foreach (
-                                //                    int t in BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice)
-                                //                    if (p1[t] > maxP12)
-                                //                        maxP12 = p1[t];
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[0] = maxP12;
-
-                                //                double maxP22 =
-                                //                    p2[BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[0]];
-
-                                //                foreach (
-                                //                    int t in BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice)
-                                //                    if (p2[t] > maxP22)
-                                //                        maxP22 = p2[t];
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[1] = maxP22;
-
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].SizeOfJobs.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].UrgentMetric.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].DueTime.RemoveAt(
-                                //                    jobIndexOP10);
-
-                                //                selectedBatchLengthOP10 =
-                                //                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.Count;
-
-                                //                double maxP1 = p1[jobOP10];
-
-                                //                foreach (int t in newBatchOP10.JobsIndice)
-                                //                    if (p1[t] > maxP1)
-                                //                        maxP1 = p1[t];
-
-                                //                newBatchOP10.Pbs[0] = maxP1;
-
-                                //                double maxP2 = p2[jobOP10];
-
-                                //                foreach (int t in newBatchOP10.JobsIndice)
-                                //                    if (p2[t] > maxP2)
-                                //                        maxP2 = p2[t];
-
-                                //                newBatchOP10.Pbs[1] = maxP2;
-
-                                //            }
-                                //        }
-
-                                //    }
-
-
-                                //    Batch[] nonEmptyBatchesAverageDjToWjOP10 = nonEmptyBatchesAfterOPs.ToArray();
-
-                                //    // if (selectedFamilyVirtualBatch.Count(item => item) >= VirtualBatchesMoreThanKmin.Count) break;
-
-                                //    if (newBatchOP10.JobsIndice.Count >= kMin)
-                                //    {
-                                //        double average = 0;
-                                //        foreach (var item in newBatchOP10.JobsIndice)
-                                //        {
-                                //            average += d[item] / wTj[item];
-
-                                //            selectedJobsAfterOPs[item] = true;
-                                //        }
-                                //        average = average / (double)newBatchOP10.JobsIndice.Count;
-
-                                //        newBatchOP10.AverageDueTimeofJobToDelayImportanceFactor = average;
-
-                                //        bool isSet = false;
-
-                                //        int l = 0;
-
-                                //        for (int j = 0; j < nonEmptyBatchesAverageDjToWjOP10.Length; j++)
-                                //        {
-                                //            if (average >
-                                //                nonEmptyBatchesAverageDjToWjOP10[j]
-                                //                    .AverageDueTimeofJobToDelayImportanceFactor)
-                                //            {
-                                //                newBatchOP10.batchIndex = j + 1;
-
-                                //                nonEmptyBatchesAverageDjToWjOP10.ToList().Insert(j + 1, newBatchOP10);
-
-                                //                isSet = true;
-
-                                //                l = j + 2;
-
-                                //                break;
-
-                                //            }
-                                //        }
-
-                                //        if (isSet)
-                                //            for (; l < nonEmptyBatchesAverageDjToWjOP10.Length; l++)
-                                //                nonEmptyBatchesAverageDjToWjOP10[l].batchIndex++;
-                                //        else
-                                //            nonEmptyBatchesAverageDjToWjOP10.ToList().Insert(0, newBatchOP10);
-
-                                //    }
+                                Batch newBatchOP10 = new Batch();
 
                                 #endregion
 
-                                //    break;
+                                Batch[] BatchesWithJobsGreaterthan2KminOP10 =
+                                    nonEmptyBatchesAfterOPs.Where(
+                                        item =>
+                                            item.JobsIndice.Count + virtualBatches[item.Family].JobsIndice.Count >=
+                                            2 * kMin).ToArray();
+
+                                bool[] selectedBatchOP10 = new bool[BatchesWithJobsGreaterthan2KminOP10.Length];
+
+                                #region New Batch Init/Reset
+
+                                newBatchOP10.JobsIndice = new List<int>();
+                                newBatchOP10.SizeOfJobs = new List<int>();
+                                newBatchOP10.UrgentMetric = new List<double>();
+                                newBatchOP10.DueTime = new List<double>();
+                                newBatchOP10.Pbs = new double[2]; //batch processing time in step 1 & 2
+                                newBatchOP10.Family = -1;
+                                newBatchOP10.machineNumber = new int[] { -1, -1 };
+                                newBatchOP10.batchIndex = -1;
+
+                                #endregion
+
+                                int selectedBatchIndexOP10 = r.Next(BatchesWithJobsGreaterthan2KminOP10.Length);
+
+                                if (!selectedBatchOP10[selectedBatchIndexOP10])
+                                    selectedBatchOP10[selectedBatchIndexOP10] = true;
+
+                                int selectedBatchLengthOP10 =
+                                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.Count;
+
+                                int selectedBatchFamilyOP10 =
+                                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Family;
+
+                                if (virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count == 0) break;
+
+                                int cnOP10 = r.Next(kMin,
+                                    (selectedBatchLengthOP10 - kMin) +
+                                    Math.Min((int)(kMax / virtualBatches[selectedBatchFamilyOP10].SizeOfJobs.Average()),
+                                        virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count));
+
+                                int selectedVirtualBatchLengthOP10 =
+                                    virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count;
+
+
+                                bool[] selectedJobFromSelectedBatchOP10 = new bool[selectedBatchLengthOP10];
+
+                                bool[] selectedJobFromSelectedVirtualBatchOP10 = new bool[selectedVirtualBatchLengthOP10];
+
+                                int jobOP10, jobIndexOP10, numberOfRemainedJobsInVirtualBatchOP10 = 0;
+
+                                for (int j = 0; j < cnOP10;)
+                                {
+                                    if (selectedVirtualBatchLengthOP10 > 0)
+                                    {
+
+                                        do
+                                        {
+                                            jobIndexOP10 = r.Next(selectedVirtualBatchLengthOP10);
+
+                                            jobOP10 =
+                                                virtualBatches[selectedBatchFamilyOP10].JobsIndice[
+                                                    jobIndexOP10];
+
+                                        } while (selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] &&
+                                                 selectedJobFromSelectedVirtualBatchOP10.Count(item => item) <
+                                                 selectedVirtualBatchLengthOP10);
+
+                                        if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] &&
+                                            Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
+                                        {
+                                            newBatchOP10.JobsIndice.Add(jobOP10);
+                                            newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
+                                            newBatchOP10.UrgentMetric.Add(1);
+                                            newBatchOP10.DueTime.Add(d[jobOP10]);
+                                            newBatchOP10.Family = selectedBatchFamilyOP10;
+
+                                            if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10])
+                                                selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] = true;
+
+                                            //virtualBatches[selectedBatchFamilyOP10].JobsIndice.RemoveAt(
+                                            //   jobIndexOP10);
+
+                                            //virtualBatches[selectedBatchFamilyOP10].SizeOfJobs.RemoveAt(
+                                            //    jobIndexOP10);
+
+                                            //virtualBatches[selectedBatchFamilyOP10].UrgentMetric
+                                            //    .RemoveAt(jobIndexOP10);
+
+                                            //virtualBatches[selectedBatchFamilyOP10].DueTime.RemoveAt(
+                                            //    jobIndexOP10);
+
+                                            //selectedVirtualBatchLengthOP10 =
+                                            //    virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count;
+
+                                            //if (selectedVirtualBatchLengthOP10 > 0)
+                                            //{
+                                            //    double maxP12 =
+                                            //    p1[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
+                                            //    ];
+
+                                            //    foreach (
+                                            //        int t in
+                                            //        virtualBatches[selectedBatchFamilyOP10].JobsIndice)
+                                            //        if (p1[t] > maxP12)
+                                            //            maxP12 = p1[t];
+
+                                            //    virtualBatches[selectedBatchFamilyOP10].Pbs[0] = maxP12;
+
+                                            //    double maxP22 =
+                                            //        p2[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
+                                            //        ];
+
+                                            //    foreach (
+                                            //        int t in
+                                            //        virtualBatches[selectedBatchFamilyOP10].JobsIndice)
+                                            //        if (p2[t] > maxP22)
+                                            //            maxP22 = p2[t];
+
+                                            //    virtualBatches[selectedBatchFamilyOP10].Pbs[1] = maxP22;
+                                            //}
+
+
+
+                                            double maxP1 = p1[jobOP10];
+
+                                            foreach (int t in newBatchOP10.JobsIndice)
+                                                if (p1[t] > maxP1)
+                                                    maxP1 = p1[t];
+
+                                            newBatchOP10.Pbs[0] = maxP1;
+
+                                            double maxP2 = p2[jobOP10];
+
+                                            foreach (int t in newBatchOP10.JobsIndice)
+                                                if (p2[t] > maxP2)
+                                                    maxP2 = p2[t];
+
+                                            newBatchOP10.Pbs[1] = maxP2;
+
+                                        }
+                                    }
+
+                                    if (selectedBatchLengthOP10 > 0)
+                                    {
+                                        do
+                                        {
+                                            jobIndexOP10 = r.Next(selectedBatchLengthOP10);
+
+                                            jobOP10 =
+                                                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[
+                                                    jobIndexOP10];
+
+                                        } while (selectedJobFromSelectedBatchOP10[jobIndexOP10] &&
+                                                 selectedJobFromSelectedBatchOP10.Count(item => item) <
+                                                 selectedBatchLengthOP10);
+
+                                        if (!selectedJobFromSelectedBatchOP10[jobIndexOP10] &&
+                                            Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
+                                        {
+                                            newBatchOP10.JobsIndice.Add(jobOP10);
+                                            newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
+                                            newBatchOP10.UrgentMetric.Add(1);
+                                            newBatchOP10.DueTime.Add(d[jobOP10]);
+                                            newBatchOP10.Family = selectedBatchFamilyOP10;
+
+                                            if (!selectedJobFromSelectedBatchOP10[jobIndexOP10])
+                                                selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.RemoveAt(
+                                            //   jobIndexOP10);
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].SizeOfJobs.RemoveAt(
+                                            //    jobIndexOP10);
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].UrgentMetric.RemoveAt(
+                                            //    jobIndexOP10);
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].DueTime.RemoveAt(
+                                            //    jobIndexOP10);
+
+                                            //selectedBatchLengthOP10 =
+                                            //    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice.Count;
+
+                                            //double maxP12 =
+                                            //    p1[BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[0]];
+
+                                            //foreach (
+                                            //    int t in BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice)
+                                            //    if (p1[t] > maxP12)
+                                            //        maxP12 = p1[t];
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[0] = maxP12;
+
+                                            //double maxP22 =
+                                            //    p2[BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice[0]];
+
+                                            //foreach (
+                                            //    int t in BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice)
+                                            //    if (p2[t] > maxP22)
+                                            //        maxP22 = p2[t];
+
+                                            //BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[1] = maxP22;
+
+
+
+                                            double maxP1 = p1[jobOP10];
+
+                                            foreach (int t in newBatchOP10.JobsIndice)
+                                                if (p1[t] > maxP1)
+                                                    maxP1 = p1[t];
+
+                                            newBatchOP10.Pbs[0] = maxP1;
+
+                                            double maxP2 = p2[jobOP10];
+
+                                            foreach (int t in newBatchOP10.JobsIndice)
+                                                if (p2[t] > maxP2)
+                                                    maxP2 = p2[t];
+
+                                            newBatchOP10.Pbs[1] = maxP2;
+
+                                        }
+
+                                    }
+
+                                    if (selectedJobFromSelectedVirtualBatchOP10.Any(item => !item))
+                                        j += selectedJobFromSelectedVirtualBatchOP10.Count(item => !item);
+                                    else
+                                        j++;
+
+
+                                }
+
+
+                                List<Batch> nonEmptyBatchesAverageDjToWjOP10 = new List<Batch>();
+
+                                foreach (var item in nonEmptyBatchesAfterOPs)
+                                {
+                                    nonEmptyBatchesAverageDjToWjOP10.Add(item);
+                                }
+
+                                if (newBatchOP10.JobsIndice.Count >= kMin)
+                                {
+                                    double average = 0;
+                                    foreach (var item in newBatchOP10.JobsIndice)
+                                    {
+                                        average += d[item] / wTj[item];
+
+                                        selectedJobsAfterOPs[item] = true;
+
+                                    }
+                                    average = average / (double)newBatchOP10.JobsIndice.Count;
+
+                                    newBatchOP10.AverageDueTimeofJobToDelayImportanceFactor = average;
+
+                                    bool isSet = false;
+
+                                    int l = 0;
+
+                                    for (int j = 0; j < nonEmptyBatchesAverageDjToWjOP10.Count; j++)
+                                    {
+                                        if (average >
+                                            nonEmptyBatchesAverageDjToWjOP10[j]
+                                                .AverageDueTimeofJobToDelayImportanceFactor)
+                                        {
+                                            newBatchOP10.batchIndex = j + 1;
+
+                                            nonEmptyBatchesAverageDjToWjOP10.Insert(j + 1, newBatchOP10);
+
+                                            isSet = true;
+
+                                            l = j + 2;
+
+                                            break;
+
+                                        }
+                                    }
+
+                                    if (isSet)
+                                        for (; l < nonEmptyBatchesAverageDjToWjOP10.Count; l++)
+                                            nonEmptyBatchesAverageDjToWjOP10[l].batchIndex++;
+                                    else
+                                        nonEmptyBatchesAverageDjToWjOP10.Insert(0, newBatchOP10);
+
+                                    foreach (var job in newBatchOP10.JobsIndice)
+                                    {
+                                        int index;
+                                        double maxP12, maxP22;
+
+                                        #region Remove from VirtualBatches
+                                        if (virtualBatches[selectedBatchFamilyOP10].JobsIndice.Any(vj => vj == job))
+                                        {
+                                            index =
+                                                Array.IndexOf(
+                                                    virtualBatches[selectedBatchFamilyOP10].JobsIndice.ToArray(), job);
+
+                                            virtualBatches[selectedBatchFamilyOP10].JobsIndice.RemoveAt(index);
+
+                                            virtualBatches[selectedBatchFamilyOP10].SizeOfJobs.RemoveAt(index);
+
+                                            virtualBatches[selectedBatchFamilyOP10].UrgentMetric.RemoveAt(index);
+
+                                            virtualBatches[selectedBatchFamilyOP10].DueTime.RemoveAt(index);
+
+                                            selectedVirtualBatchLengthOP10 =
+                                                virtualBatches[selectedBatchFamilyOP10].JobsIndice.Count;
+
+                                            if (selectedVirtualBatchLengthOP10 > 0)
+                                            {
+                                                maxP12 =
+                                                   p1[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
+                                                   ];
+
+                                                foreach (
+                                                    int t in
+                                                    virtualBatches[selectedBatchFamilyOP10].JobsIndice)
+                                                    if (p1[t] > maxP12)
+                                                        maxP12 = p1[t];
+
+                                                virtualBatches[selectedBatchFamilyOP10].Pbs[0] = maxP12;
+
+                                                maxP22 =
+                                                   p2[virtualBatches[selectedBatchFamilyOP10].JobsIndice[0]
+                                                   ];
+
+                                                foreach (
+                                                    int t in
+                                                    virtualBatches[selectedBatchFamilyOP10].JobsIndice)
+                                                    if (p2[t] > maxP22)
+                                                        maxP22 = p2[t];
+
+                                                virtualBatches[selectedBatchFamilyOP10].Pbs[1] = maxP22;
+                                            }
+                                        }
+                                        #endregion
+
+                                        #region Remove from BatchesWithJobsGreaterthan2KminOP10
+                                        else
+                                        {
+                                            index =
+                                                Array.IndexOf(
+                                                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10]
+                                                        .JobsIndice.ToArray(), job);
+
+                                            BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice
+                                                .RemoveAt(
+                                                    index);
+
+                                            BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].SizeOfJobs
+                                                .RemoveAt(
+                                                    index);
+
+                                            BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].UrgentMetric
+                                                .RemoveAt(
+                                                    index);
+
+                                            BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].DueTime.RemoveAt
+                                            (
+                                                index);
+
+                                            selectedBatchLengthOP10 =
+                                                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].JobsIndice
+                                                    .Count;
+
+                                            if (selectedBatchLengthOP10 > 0)
+                                            {
+
+                                                maxP12 =
+                                                    p1[
+                                                        BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10]
+                                                            .JobsIndice[0]];
+
+                                                foreach (
+                                                    int t in
+                                                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10]
+                                                        .JobsIndice)
+                                                    if (p1[t] > maxP12)
+                                                        maxP12 = p1[t];
+
+                                                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[0] =
+                                                    maxP12;
+
+                                                maxP22 =
+                                                    p2[
+                                                        BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10]
+                                                            .JobsIndice[0]];
+
+                                                foreach (
+                                                    int t in
+                                                    BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10]
+                                                        .JobsIndice)
+                                                    if (p2[t] > maxP22)
+                                                        maxP22 = p2[t];
+
+                                                BatchesWithJobsGreaterthan2KminOP10[selectedBatchIndexOP10].Pbs[1] =
+                                                    maxP22;
+                                            }
+                                        }
+                                        #endregion
+
+                                    }
+
+                                }
+
+
+
+                                #endregion
+
+                                break;
                         }
                         for (int j = 0; j < selectedJobsAfterOPs.Length; j++)
                             PiJ[j] = !selectedJobsAfterOPs[j] ? 1 : 0;
@@ -3081,7 +3216,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\129.xls";
+            string pathToExcelFile = "D:\\125.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
