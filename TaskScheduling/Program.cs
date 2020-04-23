@@ -17,7 +17,7 @@ namespace TaskScheduling
 {
     class Program
     {
-        struct Sol
+        class Sol
         {
 
             public List<Batch> BatchesAllocatedToMachines;
@@ -29,7 +29,7 @@ namespace TaskScheduling
             public double[] Tj;
         }
 
-        struct Model
+        class Model
         {
             public int NumberOfFamilies; //F
             public int NumberOfProducts; //N
@@ -60,7 +60,7 @@ namespace TaskScheduling
             public int NumberOfMachinesInStep2;
         }
 
-        struct Batch
+        class Batch
         {
             public List<int> BatchCandidateList;
 
@@ -102,7 +102,7 @@ namespace TaskScheduling
 
 
         }
-        struct Ant
+        class Ant
         {
             public List<Batch> Tour;
 
@@ -1802,7 +1802,7 @@ namespace TaskScheduling
                                         //for (; l < nonEmptyBatchesAverageDjToWjOP2.Length; l++)
                                         for (; l < nonEmptyBatchesAverageDjToWjOP2.Count; l++)
                                             //nonEmptyBatchesAverageDjToWjOP2[l].batchIndex++;
-                                            nonEmptyBatchesAverageDjToWjOP2.ToArray()[l].batchIndex++;
+                                            nonEmptyBatchesAverageDjToWjOP2[l].batchIndex++;
                                     else
                                         //nonEmptyBatchesAverageDjToWjOP2.ToList().Insert(0, newBatch);
                                         nonEmptyBatchesAverageDjToWjOP2.Insert(0, newBatch);
@@ -2393,11 +2393,13 @@ namespace TaskScheduling
 
                                 //Batch[] nonEmptyBatchesAverageDjToWjOP8 = nonEmptyBatchesAfterOPs.ToArray();
                                 //List<Batch> nonEmptyBatchesAverageDjToWjOP8 = nonEmptyBatchesAfterOPs;
+
                                 List<Batch> nonEmptyBatchesAverageDjToWjOP8 = new List<Batch>();
 
                                 foreach (var item in nonEmptyBatchesAfterOPs)
                                     nonEmptyBatchesAverageDjToWjOP8.Add(item);
-                                                                
+
+
                                 // if (selectedFamilyVirtualBatch.Count(item => item) >= VirtualBatchesMoreThanKmin.Count) break;
 
                                 if (newBatchOP8.JobsIndice.Count >= kMin)
@@ -2440,11 +2442,16 @@ namespace TaskScheduling
                                         }
                                     }
 
+
+
                                     if (isSet)
                                         //for (; l < nonEmptyBatchesAverageDjToWjOP8.Length; l++)
                                         for (; l < nonEmptyBatchesAverageDjToWjOP8.Count; l++)
+                                        {
                                             //nonEmptyBatchesAverageDjToWjOP8[l].batchIndex++;
-                                            nonEmptyBatchesAverageDjToWjOP8.ToArray()[l].batchIndex++;
+                                            nonEmptyBatchesAverageDjToWjOP8[l].batchIndex++;
+                                            
+                                        }
                                     else
                                         //nonEmptyBatchesAverageDjToWjOP8.ToList().Insert(0, newBatchOP8);
                                         nonEmptyBatchesAverageDjToWjOP8.Insert(0, newBatchOP8);
@@ -2651,7 +2658,7 @@ namespace TaskScheduling
                                 break;
                                 //case 10:
 
-                                //    #region OP10 Create new batch from VirtualBatches
+                                #region OP10 Create new batch from VirtualBatches
 
                                 //    bool stopFlagOP10 = nonEmptyBatchesAfterOPs.All(
                                 //        aa => aa.JobsIndice.Count + virtualBatches[aa.Family].JobsIndice.Count < 2 * kMin || virtualBatches[aa.Family].JobsIndice.Count == 0);
@@ -2931,7 +2938,7 @@ namespace TaskScheduling
 
                                 //    }
 
-                                //    #endregion
+                                #endregion
 
                                 //    break;
                         }
