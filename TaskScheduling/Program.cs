@@ -1235,9 +1235,6 @@ namespace TaskScheduling
 
                     nonEmptyBatches = sol.BatchesAllocatedToMachines;
 
-                    for (int j = 0; j < nonEmptyBatches.Count; j++)
-                        nonEmptyBatches.ToArray()[j].batchIndex = j;
-
                     #region myNonEmptyBatch Init
 
                     Batch[] myNonEmptyBatches = new Batch[nonEmptyBatches.Count];
@@ -1245,8 +1242,11 @@ namespace TaskScheduling
                     for (int x = 0; x < myNonEmptyBatches.Length; x++)
                     {
                         myNonEmptyBatches[x] = nonEmptyBatches[x];
-
+                        myNonEmptyBatches[x].batchIndex = x;
                     }
+
+
+                    nonEmptyBatches = myNonEmptyBatches.ToList();
 
                     #endregion
 
