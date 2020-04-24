@@ -2715,7 +2715,7 @@ namespace TaskScheduling
 
                                 bool[] selectedJobFromSelectedVirtualBatchOP10 = new bool[selectedVirtualBatchLengthOP10];
 
-                                int jobOP10, jobIndexOP10;
+                                int jobOP10, jobIndexOP10, numberOfUnSelectedVirtualBatches=0;
 
                                 for (int j = 0; j < cnOP10;)
                                 {
@@ -2736,6 +2736,8 @@ namespace TaskScheduling
                                         if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] &&
                                             Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
                                         {
+                                            selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] = true;
+
                                             newBatchOP10.JobsIndice.Add(jobOP10);
                                             newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
                                             newBatchOP10.UrgentMetric.Add(1);
@@ -2760,7 +2762,10 @@ namespace TaskScheduling
 
                                         }
                                         if (!selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10])
+                                        {
                                             selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] = true;
+                                            numberOfUnSelectedVirtualBatches++;
+                                        }
                                     }
 
                                     else if (selectedBatchLengthOP10 > 0 &&
@@ -2782,6 +2787,8 @@ namespace TaskScheduling
                                         if (!selectedJobFromSelectedBatchOP10[jobIndexOP10] &&
                                             Sj[jobOP10] + newBatchOP10.SizeOfJobs.Sum() < kMax)
                                         {
+                                            selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
+
                                             newBatchOP10.JobsIndice.Add(jobOP10);
                                             newBatchOP10.SizeOfJobs.Add(Sj[jobOP10]);
                                             newBatchOP10.UrgentMetric.Add(1);
@@ -2807,11 +2814,10 @@ namespace TaskScheduling
                                         }
                                         if (!selectedJobFromSelectedBatchOP10[jobIndexOP10])
                                             selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
-
                                     }
 
-                                    if (selectedJobFromSelectedVirtualBatchOP10.Any(item => !item))
-                                        j += selectedJobFromSelectedVirtualBatchOP10.Count(item => !item);
+                                    if (numberOfUnSelectedVirtualBatches>0)
+                                        j += numberOfUnSelectedVirtualBatches;
                                     else
                                         j++;
 
@@ -2868,6 +2874,8 @@ namespace TaskScheduling
                                             nonEmptyBatchesAverageDjToWjOP10[l].batchIndex++;
                                     else
                                         nonEmptyBatchesAverageDjToWjOP10.Insert(0, newBatchOP10);
+
+                                    nonEmptyBatchesAfterOPs = nonEmptyBatchesAverageDjToWjOP10;
 
                                     foreach (var job in newBatchOP10.JobsIndice)
                                     {
