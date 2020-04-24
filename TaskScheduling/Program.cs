@@ -2715,12 +2715,18 @@ namespace TaskScheduling
 
                                 bool[] selectedJobFromSelectedVirtualBatchOP10 = new bool[selectedVirtualBatchLengthOP10];
 
-                                int jobOP10, jobIndexOP10, numberOfUnSelectedVirtualBatches=0;
+                                int jobOP10, jobIndexOP10, numberOfUnSelectedVirtualBatches = 0;
 
                                 for (int j = 0; j < cnOP10;)
                                 {
+                                    if (numberOfUnSelectedVirtualBatches > 0)
+                                        j += numberOfUnSelectedVirtualBatches;
+                                    else
+                                        j++;
+
                                     if (selectedVirtualBatchLengthOP10 > 0)
                                     {
+
                                         do
                                         {
                                             jobIndexOP10 = r.Next(selectedVirtualBatchLengthOP10);
@@ -2766,7 +2772,12 @@ namespace TaskScheduling
                                             selectedJobFromSelectedVirtualBatchOP10[jobIndexOP10] = true;
                                             numberOfUnSelectedVirtualBatches++;
                                         }
+
+                                        if (selectedJobFromSelectedVirtualBatchOP10.Any(item => !item)) continue;
+
+
                                     }
+
 
                                     else if (selectedBatchLengthOP10 > 0 &&
                                         (selectedJobFromSelectedVirtualBatchOP10.All(item => item)))
@@ -2816,12 +2827,7 @@ namespace TaskScheduling
                                             selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
                                     }
 
-                                    if (numberOfUnSelectedVirtualBatches>0)
-                                        j += numberOfUnSelectedVirtualBatches;
-                                    else
-                                        j++;
-
-
+                                    
                                 }
 
 
