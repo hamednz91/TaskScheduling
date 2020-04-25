@@ -1236,20 +1236,8 @@ namespace TaskScheduling
 
                     nonEmptyBatches = sol.BatchesAllocatedToMachines;
 
-                    #region myNonEmptyBatch Init
-
-                    Batch[] myNonEmptyBatches = new Batch[nonEmptyBatches.Count];
-
-                    for (int x = 0; x < myNonEmptyBatches.Length; x++)
-                    {
-                        myNonEmptyBatches[x] = nonEmptyBatches[x];
-                        myNonEmptyBatches[x].batchIndex = x;
-                    }
-
-
-                    nonEmptyBatches = myNonEmptyBatches.ToList();
-
-                    #endregion
+                    for (int x = 0; x < nonEmptyBatches.Count; x++)
+                        nonEmptyBatches[x].batchIndex = x;
 
                     #region Virtual Batch Init
 
@@ -2236,7 +2224,7 @@ namespace TaskScheduling
 
                                 if (stopflagOP7) break;
 
-                                Batch[] batchesForExchangeBatchIndice = myNonEmptyBatches;
+                                Batch[] batchesForExchangeBatchIndice = nonEmptyBatchesAfterOPs.ToArray();
 
                                 int selectedBatchIndex1OP7 = r.Next(batchesForExchangeBatchIndice.Length);
 
@@ -2724,7 +2712,7 @@ namespace TaskScheduling
                                     else
                                         j++;
 
-                                    if (selectedVirtualBatchLengthOP10 > 0)
+                                    if (selectedVirtualBatchLengthOP10 > 0 && selectedJobFromSelectedVirtualBatchOP10.Any(item => !item))
                                     {
 
                                         do
@@ -2779,8 +2767,7 @@ namespace TaskScheduling
                                     }
 
 
-                                    else if (selectedBatchLengthOP10 > 0 &&
-                                        (selectedJobFromSelectedVirtualBatchOP10.All(item => item)))
+                                    else if (selectedBatchLengthOP10 > 0)
                                     {
 
                                         do
@@ -2827,7 +2814,7 @@ namespace TaskScheduling
                                             selectedJobFromSelectedBatchOP10[jobIndexOP10] = true;
                                     }
 
-                                    
+
                                 }
 
 
@@ -3022,7 +3009,7 @@ namespace TaskScheduling
 
                         Tj = new double[N];
 
-                        solAfterOPs = Algorithm1(5, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                        solAfterOPs = Algorithm1(5, nonEmptyBatchesAfterOPs, t1, t2, Tj, d, t_now);
 
                         modelAfterOPs.DelayOfJobs = solAfterOPs.Tj;
 
@@ -3148,7 +3135,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\125.xls";
+            string pathToExcelFile = "D:\\129.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
