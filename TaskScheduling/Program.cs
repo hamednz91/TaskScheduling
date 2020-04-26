@@ -114,6 +114,9 @@ namespace TaskScheduling
             public bool[] SelectedJobs;
 
             public bool[] SelectedJobsForEmptyBatches;
+
+            public double[] R;
+
         }
 
         /// <summary>
@@ -741,6 +744,8 @@ namespace TaskScheduling
 
             bestAnt.SelectedJobsForEmptyBatches = new bool[N];
 
+            bestAnt.R = new double[N];
+
             Sol sol = new Sol();
 
             sol.BatchesAllocatedToMachines = new List<Batch>();
@@ -755,6 +760,18 @@ namespace TaskScheduling
 
             for (int it = 0; it < maxIteration; it++)
             {
+                Ant bestAntPerIteration = new Ant();
+
+                bestAntPerIteration.Tour = new List<Batch>();
+
+                bestAntPerIteration.Cost = double.MaxValue;
+
+                bestAntPerIteration.SelectedJobs = new bool[N];
+
+                bestAntPerIteration.SelectedJobsForEmptyBatches = new bool[N];
+
+                bestAntPerIteration.R = new double[N];
+
                 int t_now = 0;
 
                 R = new double[N];
@@ -773,6 +790,8 @@ namespace TaskScheduling
                     ant[k].SelectedJobs = new bool[N];
 
                     ant[k].SelectedJobsForEmptyBatches = new bool[N];
+
+                    ant[k].R = new double[N];
 
                     t1 = new double[model.NumberOfMachinesInStep1];
 
@@ -1229,9 +1248,14 @@ namespace TaskScheduling
 
                     ant[k].SelectedJobsForEmptyBatches = selectedJobsForEmptyBatches;
 
-                    if (ant[k].Cost < bestAnt.Cost)
+                    //if (ant[k].Cost < bestAnt.Cost)
+                    //{
+                    //    bestAnt = ant[k];
+                    //}
+
+                    if (ant[k].Cost < bestAntPerIteration.Cost)
                     {
-                        bestAnt = ant[k];
+                        bestAntPerIteration = ant[k];
                     }
 
                     nonEmptyBatches = sol.BatchesAllocatedToMachines;
@@ -3034,15 +3058,24 @@ namespace TaskScheduling
                             selectedJobs = selectedJobsAfterOPs;
 
                         }
-                        if (ant[k].Cost < bestAnt.Cost)
+                        if (ant[k].Cost < bestAntPerIteration.Cost)
                         {
-                            bestAnt = ant[k];
+                            bestAntPerIteration = ant[k];
+                        }
+                        if (bestAntPerIteration.Cost < bestAnt.Cost)
+                        {
+                            bestAnt = bestAntPerIteration;
                         }
 
                     }
 
+                    //for (int j = 0; j < selectedJobs.Length; j++)
+                    //    R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
+
                     for (int j = 0; j < selectedJobs.Length; j++)
-                        R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
+                        bestAntPerIteration.R[j] = !selectedJobs[j]
+                            ? bestAntPerIteration.R[j] + 1
+                            : bestAntPerIteration.R[j];
 
                     for (int j = 0; j < tauJ.Length; j++)
                         tauJ[j] = (double)1 / (double)(R[j] + 1);
@@ -3089,10 +3122,10 @@ namespace TaskScheduling
                 }
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] += (rho * (double)1 / (double)(R[j] + 1));
+                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(R[j] + 1));
 
-                for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] *= (double)(1 - rho);
+                //for (int j = 0; j < tauJ.Length; j++)
+                //    tauJ[j] *= (double)(1 - rho);
 
                 #endregion
 
@@ -3135,7 +3168,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\129.xls";
+            string pathToExcelFile = "D:\\125.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
