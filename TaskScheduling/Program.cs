@@ -10,6 +10,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.ModelBinding;
 using LinqToExcel;
 using Remotion.Data.Linq.Clauses;
 using Remotion.FunctionalProgramming;
@@ -28,6 +29,20 @@ namespace TaskScheduling
             public double[] TimeofMachinesStep2;
 
             public double[] Tj;
+
+            public Sol()
+            {
+
+            }
+
+            public Sol(Sol sol)
+            {
+                this.BatchesAllocatedToMachines = sol.BatchesAllocatedToMachines;
+                this.TimeofMachinesStep1 = sol.TimeofMachinesStep1;
+                this.TimeofMachinesStep2 = sol.TimeofMachinesStep2;
+                this.Tj = sol.Tj;
+            }
+
         }
 
         class Model
@@ -59,6 +74,31 @@ namespace TaskScheduling
             public int NumberOfMachinesInStep1;
 
             public int NumberOfMachinesInStep2;
+
+            public Model()
+            {
+
+            }
+            public Model(Model model)
+            {
+                this.NumberOfProducts = model.NumberOfProducts;
+                this.NumberOfFamilies = model.NumberOfFamilies;
+                this.Ww = model.Ww;
+                this.Kmin = model.Kmin;
+                this.Kmax = model.Kmax;
+                this.MaxNumberOfBatches = model.MaxNumberOfBatches;
+                this.NumberOfMachinesInStep1 = model.NumberOfMachinesInStep1;
+                this.NumberOfMachinesInStep2 = model.NumberOfMachinesInStep2;
+                this.DelayImportanceFactor = model.DelayImportanceFactor;
+                this.ProcessTimeOfJobsInStep1 = model.ProcessTimeOfJobsInStep1;
+                this.ProcessTimeOfJobsInStep2 = model.ProcessTimeOfJobsInStep2;
+                this.SizeOfJobs = model.SizeOfJobs;
+                this.DueTimeOfJobs = model.DueTimeOfJobs;
+                this.JobBelongsFamily = model.JobBelongsFamily;
+                this.IgnoreImportanceFactor = model.IgnoreImportanceFactor;
+                this.IgnoranceBinary = model.IgnoranceBinary;
+                this.DelayOfJobs = model.DelayOfJobs;
+            }
         }
 
         class Batch
@@ -1334,9 +1374,14 @@ namespace TaskScheduling
                         nonEmptyBatchesAfterOPs.Add(item);
 
 
-                    Model modelAfterOPs = model;
-                    bool[] selectedJobsAfterOPs = selectedJobs;
-                    Sol solAfterOPs = sol;
+                    Model modelAfterOPs = new Model(model);
+
+                    bool[] selectedJobsAfterOPs = new bool[selectedJobs.Length];
+
+                    for (int i = 0; i < selectedJobsAfterOPs.Length; i++)
+                        selectedJobsAfterOPs[i] = selectedJobs[i];
+
+                    Sol solAfterOPs = new Sol(sol);
 
                     for (int i = 0; i < A; i++)
                     {
