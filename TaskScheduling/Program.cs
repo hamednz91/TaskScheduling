@@ -3102,27 +3102,31 @@ namespace TaskScheduling
                             selectedJobs = selectedJobsAfterOPs;
 
                         }
-                        if (ant[k].Cost < bestAntPerIteration.Cost)
-                        {
-                            bestAntPerIteration = ant[k];
-                        }
-                        if (bestAntPerIteration.Cost < bestAnt.Cost)
-                        {
-                            bestAnt = bestAntPerIteration;
-                        }
+                        
 
+                    }
+
+                    if (ant[k].Cost < bestAntPerIteration.Cost)
+                    {
+                        bestAntPerIteration = ant[k];
+
+                        for (int j = 0; j < selectedJobs.Length; j++)
+                            bestAntPerIteration.R[j] = !bestAntPerIteration.SelectedJobs[j]
+                                ? bestAntPerIteration.R[j] + 1
+                                : bestAntPerIteration.R[j];
+
+                        for (int j = 0; j < tauJ.Length; j++)
+                            tauJ[j] = (double)1 / (double)(bestAntPerIteration.R[j] + 1);
+
+                    }
+                    if (bestAntPerIteration.Cost < bestAnt.Cost)
+                    {
+                        bestAnt = bestAntPerIteration;
                     }
 
                     //for (int j = 0; j < selectedJobs.Length; j++)
                     //    R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
-
-                    for (int j = 0; j < selectedJobs.Length; j++)
-                        bestAntPerIteration.R[j] = !selectedJobs[j]
-                            ? bestAntPerIteration.R[j] + 1
-                            : bestAntPerIteration.R[j];
-
-                    for (int j = 0; j < tauJ.Length; j++)
-                        tauJ[j] = (double)1 / (double)(R[j] + 1);
+                    
 
                     foreach (var nonemptybatch in nonEmptyBatches)
                     {
@@ -3166,7 +3170,7 @@ namespace TaskScheduling
                 }
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(R[j] + 1));
+                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(bestAntPerIteration.R[j] + 1));
 
                 //for (int j = 0; j < tauJ.Length; j++)
                 //    tauJ[j] *= (double)(1 - rho);
@@ -3212,7 +3216,7 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\125.xls";
+            string pathToExcelFile = "D:\\129.xls";
             //string pathToExcelFile = Console.ReadLine();
 
 
