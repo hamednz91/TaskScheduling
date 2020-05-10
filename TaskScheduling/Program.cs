@@ -1382,6 +1382,8 @@ namespace TaskScheduling
 
                     Sol solAfterOPs = new Sol(sol);
 
+                    #region Operators
+
                     for (int i = 0; i < A; i++)
                     {
                         List<Batch> BatchesGreaterThanKmin = new List<Batch>();
@@ -3106,6 +3108,8 @@ namespace TaskScheduling
 
                     }
 
+                    #endregion
+
                     if (ant[k].Cost < bestAntPerIteration.Cost)
                     {
                         bestAntPerIteration = ant[k];
@@ -3124,9 +3128,9 @@ namespace TaskScheduling
                         bestAnt = bestAntPerIteration;
                     }
 
-                    //for (int j = 0; j < selectedJobs.Length; j++)
-                    //    R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
-                    
+                    for (int j = 0; j < selectedJobs.Length; j++)
+                        R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
+
 
                     foreach (var nonemptybatch in nonEmptyBatches)
                     {
@@ -3170,7 +3174,7 @@ namespace TaskScheduling
                 }
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(bestAntPerIteration.R[j] + 1));
+                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(R[j] + 1));
 
                 //for (int j = 0; j < tauJ.Length; j++)
                 //    tauJ[j] *= (double)(1 - rho);
