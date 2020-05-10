@@ -156,6 +156,8 @@ namespace TaskScheduling
 
             public double[] R;
 
+            public bool[,] mJXFlag;
+
         }
 
         /// <summary>
@@ -728,6 +730,7 @@ namespace TaskScheduling
             double beta4 = 1;
 
             double rho = 0.05;
+            double rhoL = 0.05;
 
             #endregion
 
@@ -743,13 +746,19 @@ namespace TaskScheduling
 
             double[,] phiJX = new double[N, N];
 
+            double[,] phiJX0 = new double[N, N];
+
             int[,] mJX = new int[N, N];
+
+            bool[,] mJXFlag = new bool[N, N];
 
             double[] R = new double[N];
 
             double[] tauJB = new double[N];
 
             double[] tauJ = new double[N];
+
+            double[] tauJ0 = new double[N];
 
             for (int i = 0; i < N; i++)
             {
@@ -765,9 +774,13 @@ namespace TaskScheduling
 
                 tauJ[i] = 1;
 
+                tauJ0[i] = 1;
+
                 for (int j = 0; j < N; j++)
                 {
                     phiJX[i, j] = 0.1;
+
+                    phiJX0[i, j] = 0.1;
                 }
             }
 
@@ -784,6 +797,8 @@ namespace TaskScheduling
             bestAnt.SelectedJobsForEmptyBatches = new bool[N];
 
             bestAnt.R = new double[N];
+
+            bestAnt.mJXFlag = new bool[N, N];
 
             Sol sol = new Sol();
 
@@ -811,6 +826,8 @@ namespace TaskScheduling
 
                 bestAntPerIteration.R = new double[N];
 
+                bestAntPerIteration.mJXFlag = new bool[N, N];
+
                 int t_now = 0;
 
                 R = new double[N];
@@ -831,6 +848,8 @@ namespace TaskScheduling
                     ant[k].SelectedJobsForEmptyBatches = new bool[N];
 
                     ant[k].R = new double[N];
+
+                    ant[k].mJXFlag = new bool[N, N];
 
                     t1 = new double[model.NumberOfMachinesInStep1];
 
@@ -3104,34 +3123,13 @@ namespace TaskScheduling
                             selectedJobs = selectedJobsAfterOPs;
 
                         }
-                        
+
 
                     }
 
                     #endregion
 
-                    if (ant[k].Cost < bestAntPerIteration.Cost)
-                    {
-                        bestAntPerIteration = ant[k];
-
-                        for (int j = 0; j < selectedJobs.Length; j++)
-                            bestAntPerIteration.R[j] = !bestAntPerIteration.SelectedJobs[j]
-                                ? bestAntPerIteration.R[j] + 1
-                                : bestAntPerIteration.R[j];
-
-                        for (int j = 0; j < tauJ.Length; j++)
-                            tauJ[j] = (double)1 / (double)(bestAntPerIteration.R[j] + 1);
-
-                    }
-                    if (bestAntPerIteration.Cost < bestAnt.Cost)
-                    {
-                        bestAnt = bestAntPerIteration;
-                    }
-
-                    for (int j = 0; j < selectedJobs.Length; j++)
-                        R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
-
-
+                    
                     foreach (var nonemptybatch in nonEmptyBatches)
                     {
                         for (int l = 0; l < nonemptybatch.JobsIndice.Count; l++)
@@ -3145,12 +3143,53 @@ namespace TaskScheduling
                                     //sumOfPhiJXs += phiJX[nonemptybatch.JobsIndice[l], nonemptybatch.JobsIndice[j]];
 
                                     mJX[nonemptybatch.JobsIndice[l], nonemptybatch.JobsIndice[j]]++;
+
+                                    mJXFlag[nonemptybatch.JobsIndice[l], nonemptybatch.JobsIndice[j]] = true;
                                 }
                             }
 
                             // tauJB[nonemptybatch.JobsIndice[l]] = sumOfPhiJXs / nonemptybatch.JobsIndice.Count;
                         }
                     }
+
+                    ant[k].mJXFlag = mJXFlag;
+
+                    if (ant[k].Cost < bestAntPerIteration.Cost)
+                    {
+                        bestAntPerIteration = ant[k];
+
+                        for (int j = 0; j < selectedJobs.Length; j++)
+                            bestAntPerIteration.R[j] = !bestAntPerIteration.SelectedJobs[j]
+                                ? bestAntPerIteration.R[j] + 1
+                                : bestAntPerIteration.R[j];
+
+                        //for (int j = 0; j < tauJ.Length; j++)
+                        //    tauJ[j] = (double)1 / (double)(bestAntPerIteration.R[j] + 1);
+
+                    }
+
+                    if (bestAntPerIteration.Cost < bestAnt.Cost)
+                    {
+                        bestAnt = bestAntPerIteration;
+                    }
+
+                    for (int j = 0; j < selectedJobs.Length; j++)
+                        R[j] = !selectedJobs[j] ? R[j] + 1 : R[j];
+
+                    for (int j = 0; j < tauJ.Length; j++)
+                        tauJ[j] = !selectedJobs[j] ? rhoL * ((double)1 / (double)(R[j] + 1)) : ((double)(1 - rhoL) * tauJ[j]) + (rhoL * tauJ0[j]);
+
+                    for (int i = 0; i < phiJX.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < phiJX.GetLength(1); j++)
+                        {
+                            phiJX[i, j] = mJXFlag[i, j]
+                                ? (double)(1 - rhoL) * phiJX[i, j] + rhoL * phiJX0[i, j]
+                                : (double)(1 - rhoL) * phiJX[i, j];
+
+                        }
+                    }
+
 
                 }
 
@@ -3160,22 +3199,27 @@ namespace TaskScheduling
                 {
                     for (int j = 0; j < phiJX.GetLength(1); j++)
                     {
-                        phiJX[i, j] +=
-                            ((double)mJX[i, j] * ((double)Q / (double)bestAnt.Cost));
+                        phiJX[i, j] = bestAntPerIteration.mJXFlag[i, j]
+                            ? ((double) (1 - rho)*phiJX[i, j]) + ((double) mJX[i, j]*phiJX0[i, j])
+                            : ((double) (1 - rho)*phiJX[i, j]);
                     }
                 }
 
-                for (int i = 0; i < phiJX.GetLength(0); i++)
-                {
-                    for (int j = 0; j < phiJX.GetLength(1); j++)
-                    {
-                        phiJX[i, j] *= (double)(1 - rho);
-                    }
-                }
+                //for (int i = 0; i < phiJX.GetLength(0); i++)
+                //{
+                //    for (int j = 0; j < phiJX.GetLength(1); j++)
+                //    {
+                //        phiJX[i, j] *= (double)(1 - rho);
+                //    }
+                //}
 
                 for (int j = 0; j < tauJ.Length; j++)
-                    tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(R[j] + 1));
-
+                {
+                    //tauJ[j] = (tauJ[j] * (double)(1 - rho)) + (rho * (double)1 / (double)(R[j] + 1));
+                    tauJ[j] = !bestAntPerIteration.SelectedJobs[j]
+                        ? (tauJ[j] * (double)(1 - rho))
+                        : (tauJ[j] * (double)(1 - rho)) + (tauJ0[j] * (double)1 / (double)(R[j] + 1));
+                }
                 //for (int j = 0; j < tauJ.Length; j++)
                 //    tauJ[j] *= (double)(1 - rho);
 
