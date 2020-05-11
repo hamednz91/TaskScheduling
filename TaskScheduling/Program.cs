@@ -827,7 +827,7 @@ namespace TaskScheduling
                 bestAntPerIteration.R = new double[N];
 
                 bestAntPerIteration.mJXFlag = new bool[N, N];
-
+               
                 int t_now = 0;
 
                 R = new double[N];
@@ -858,6 +858,8 @@ namespace TaskScheduling
                     selectedJobs = new bool[N];
 
                     selectedJobsForEmptyBatches = new bool[N];
+
+                    mJXFlag=new bool[N,N];
 
                     #region Batches Initialization
 
