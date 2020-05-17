@@ -643,7 +643,7 @@ namespace TaskScheduling
                             t2[minIndexT2] += nonEmptyBatchesSortedByMeanUrgentC6[bb].Pbs[1];
                         }
 
-                        t_Now = t1[minIndexT2];
+                        t_Now = t1[minIndexT1];
 
                         nonEmptyBatchesSortedByMeanUrgentC6[bb].machineNumber[0] = minIndexT1;
 
@@ -674,16 +674,16 @@ namespace TaskScheduling
                                 }
                             }
                         }
+                        
 
+                        sol.BatchesAllocatedToMachines.Add(nonEmptyBatchesSortedByMeanUrgentC6[0]);
+
+                        nonEmptyBatchesSortedByMeanUrgentC6.RemoveAt(0);
                     }
 
                     sol.TimeofMachinesStep1 = t1;
 
                     sol.TimeofMachinesStep2 = t2;
-
-                    sol.BatchesAllocatedToMachines.Add(nonEmptyBatchesSortedByMeanUrgentC6[0]);
-
-                    nonEmptyBatchesSortedByMeanUrgentC6.RemoveAt(0);
 
                     break;
 
@@ -1391,7 +1391,7 @@ namespace TaskScheduling
 
                     model.NumberOfNonEmptyBatches = nonEmptyBatches.Count;
 
-                    sol = Algorithm1(6, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                    sol = Algorithm1(4, nonEmptyBatches, t1, t2, Tj, d, t_now);
 
                     model.DelayOfJobs = sol.Tj;
 
