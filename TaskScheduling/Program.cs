@@ -140,6 +140,8 @@ namespace TaskScheduling
 
             public double AverageDueTimeofJobToDelayImportanceFactor; // dj/wj
 
+            public double idleTime;
+
 
         }
         class Ant
@@ -592,8 +594,99 @@ namespace TaskScheduling
                     break;
 
 
-                    #endregion
+                #endregion
 
+                #region Case 6
+
+                case 6:
+
+                    List<Batch> nonEmptyBatchesSortedByMeanUrgentC6 = noneEmptybatches;
+
+                    foreach (var batch in nonEmptyBatchesSortedByMeanUrgentC6)
+                    {
+                        for (int b = 0; b < nonEmptyBatchesSortedByMeanUrgentC6.Count; b++)
+                        {
+                            for (int j = 0; j < nonEmptyBatchesSortedByMeanUrgentC6[b].UrgentMetric.Count; j++)
+                            {
+                                nonEmptyBatchesSortedByMeanUrgentC6[b].UrgentMetric[j] =
+                                    (double)(d[nonEmptyBatchesSortedByMeanUrgentC6[b].JobsIndice[j]] - t_Now) /
+                                    (double)(nonEmptyBatchesSortedByMeanUrgentC6[b].Pbs[0] +
+                                              nonEmptyBatchesSortedByMeanUrgentC6[b].Pbs[1] +
+                                              nonEmptyBatchesSortedByMeanUrgentC6[b].idleTime);
+                            }
+                        }
+
+                        nonEmptyBatchesSortedByMeanUrgentC6 =
+                            nonEmptyBatchesSortedByMeanUrgentC6.OrderBy(a => a.UrgentMetric.Average()).ToList();
+
+
+                        double T1 = t1.Min(a => a);
+
+                        int minIndexT1 = Array.IndexOf(t1, T1);
+
+                        double T2 = t2.Min(a => a);
+
+                        int minIndexT2 = Array.IndexOf(t2, T2);
+
+                        double T = T2 - T1;
+
+                        if (batch.Pbs[0] - T >= 0)
+                        {
+                            t1[minIndexT1] += batch.Pbs[0];
+
+                            t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
+                        }
+                        else
+                        {
+                            t1[minIndexT1] = t2[minIndexT2];
+
+                            t2[minIndexT2] += batch.Pbs[1];
+                        }
+
+                        t_Now = t1[minIndexT2];
+
+                        batch.machineNumber[0] = minIndexT1;
+
+                        batch.machineNumber[1] = minIndexT2;
+
+                        foreach (int j in batch.JobsIndice)
+                            Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
+
+                        T1 = t1.Min(a => a);
+
+                        T2 = t2.Min(a => a);
+
+                        T = T2 - T1;
+
+                        for (int i = 0; i < nonEmptyBatchesSortedByMeanUrgentC6.Count; i++)
+                        {
+                            if (nonEmptyBatchesSortedByMeanUrgentC6[i] != batch)
+                            {
+
+                                if (batch.Pbs[0] - T >= 0)
+                                {
+                                    nonEmptyBatchesSortedByMeanUrgentC6[i].idleTime = 0;
+                                }
+                                else
+                                {
+                                    nonEmptyBatchesSortedByMeanUrgentC6[i].idleTime = T - batch.Pbs[0];
+                                }
+                            }
+                        }
+
+                    }
+
+                    sol.TimeofMachinesStep1 = t1;
+
+                    sol.TimeofMachinesStep2 = t2;
+
+                    sol.BatchesAllocatedToMachines.Add(nonEmptyBatchesSortedByMeanUrgentC6[0]);
+
+                    nonEmptyBatchesSortedByMeanUrgentC6.RemoveAt(0);
+
+                    break;
+
+                    #endregion
             }
 
             sol.Tj = Tj;
@@ -647,7 +740,7 @@ namespace TaskScheduling
             return 0;
         }
 
-        static void Run_ACO(string inputFilePath)
+        static void Run_ACO(string inputFilePath, long elapsedTime)
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 
@@ -716,7 +809,7 @@ namespace TaskScheduling
 
             #region ACO Prarameters 
 
-            int maxIteration = 5000;
+            int maxIteration = 1000;
 
             int numberOfAnts = 50;
 
@@ -812,7 +905,7 @@ namespace TaskScheduling
 
             #region ACO Main Loop
 
-            for (int it = 0; it < maxIteration; it++)
+            for (int it = 0; it < maxIteration && sw.ElapsedMilliseconds < elapsedTime; it++)
             {
                 Ant bestAntPerIteration = new Ant();
 
@@ -827,14 +920,14 @@ namespace TaskScheduling
                 bestAntPerIteration.R = new double[N];
 
                 bestAntPerIteration.mJXFlag = new bool[N, N];
-               
-                int t_now = 0;
 
                 R = new double[N];
 
                 // Ants Movement
                 for (int k = 0; k < numberOfAnts; k++)
                 {
+                    int t_now = 0;
+
                     sol = new Sol();
 
                     ant[k] = new Ant();
@@ -859,7 +952,7 @@ namespace TaskScheduling
 
                     selectedJobsForEmptyBatches = new bool[N];
 
-                    mJXFlag=new bool[N,N];
+                    mJXFlag = new bool[N, N];
 
                     #region Batches Initialization
 
@@ -1030,28 +1123,6 @@ namespace TaskScheduling
 
                         }
 
-                        for (int j = 0; j < batches[b].BatchCandidateList.Count; j++)
-                        {
-                            eta3J[batches[b].BatchCandidateList[j]] = (double)1 /
-                                                                      (double)
-                                                                      ((kMax - batches[b].SizeOfJobs.Sum()) -
-                                                                       Sj[batches[b].BatchCandidateList[j]] + 1);
-
-                            double sumOfPhiJXs = 0;
-
-                            for (int l = 0; l < batches[b].JobsIndice.Count; l++)
-                            {
-                                // if (l != j)
-                                //{
-                                sumOfPhiJXs += phiJX[batches[b].BatchCandidateList[j], batches[b].JobsIndice[l]];
-                                //  }
-                            }
-
-                            tauJB[batches[b].BatchCandidateList[j]] = sumOfPhiJXs / batches[b].JobsIndice.Count;
-
-                        }
-
-
                         #endregion
 
                         #region Pick From Candidate List
@@ -1077,7 +1148,29 @@ namespace TaskScheduling
 
                             double sumOfSum = 0;
 
+                            double s = 0;
+
                             counter++;
+
+                            for (int j = 0; j < batches[b].BatchCandidateList.Count; j++)
+                            {
+                                eta3J[batches[b].BatchCandidateList[j]] = (double)1 /
+                                                                          (double)
+                                                                          (Math.Abs((kMax - batches[b].SizeOfJobs.Sum()) -
+                                                                           Sj[batches[b].BatchCandidateList[j]]) + 1);
+                                double sumOfPhiJXs = 0;
+
+                                for (int l = 0; l < batches[b].JobsIndice.Count; l++)
+                                {
+                                    // if (l != j)
+                                    //{
+                                    sumOfPhiJXs += phiJX[batches[b].BatchCandidateList[j], batches[b].JobsIndice[l]];
+                                    //  }
+                                }
+
+                                tauJB[batches[b].BatchCandidateList[j]] = sumOfPhiJXs / batches[b].JobsIndice.Count;
+
+                            }
 
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
                             {
@@ -1120,6 +1213,12 @@ namespace TaskScheduling
                                 batches[b].TauJBCandidates[l] = batches[b].TauJBCandidates[l] / sumOfTauJB;
 
                                 batches[b].TauJCandidates[l] = batches[b].TauJCandidates[l] / sumOfTauJ;
+
+                                s += (Math.Pow((batches[b].TauJBCandidates[l] + batches[b].TauJCandidates[l]), alpha) *
+                                      Math.Pow(batches[b].Eta1jCandidates[l], beta1) *
+                                      Math.Pow(batches[b].Eta2jCandidates[l], beta2) *
+                                      Math.Pow(batches[b].Eta3jCandidates[l], beta3) *
+                                      Math.Pow(batches[b].Eta4jCandidates[l], beta4));
                             }
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
                             {
@@ -1129,12 +1228,7 @@ namespace TaskScheduling
                                      Math.Pow(batches[b].Eta2jCandidates[l], beta2) *
                                      Math.Pow(batches[b].Eta3jCandidates[l], beta3) *
                                      Math.Pow(batches[b].Eta4jCandidates[l], beta4)
-                                    ) /
-                                    (Math.Pow((sumOfTauJB + sumOfTauJB), alpha) *
-                                     Math.Pow(sumOfEta1, beta1) *
-                                     Math.Pow(sumOfEta2, beta2) *
-                                     Math.Pow(sumOfEta3, beta3) *
-                                     Math.Pow(sumOfEta4, beta4));
+                                    ) / s;
                                 sumOfSum += batches[b].JobCandidateSelectionProbability[l];
                             }
                             for (int l = 0; l < batches[b].BatchCandidateList.Count; l++)
@@ -3131,7 +3225,7 @@ namespace TaskScheduling
 
                     #endregion
 
-                    
+
                     foreach (var nonemptybatch in nonEmptyBatches)
                     {
                         for (int l = 0; l < nonemptybatch.JobsIndice.Count; l++)
@@ -3202,8 +3296,8 @@ namespace TaskScheduling
                     for (int j = 0; j < phiJX.GetLength(1); j++)
                     {
                         phiJX[i, j] = bestAntPerIteration.mJXFlag[i, j]
-                            ? ((double) (1 - rho)*phiJX[i, j]) + ((double) mJX[i, j]*phiJX0[i, j])
-                            : ((double) (1 - rho)*phiJX[i, j]);
+                            ? ((double)(1 - rho) * phiJX[i, j]) + ((double)mJX[i, j] * phiJX0[i, j])
+                            : ((double)(1 - rho) * phiJX[i, j]);
                     }
                 }
 
@@ -3266,8 +3360,8 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            string pathToExcelFile = "D:\\129.xls";
-            //string pathToExcelFile = Console.ReadLine();
+            //string pathToExcelFile = "D:\\129.xls";
+            string pathToExcelFile = Console.ReadLine();
 
 
             while ((!File.Exists(pathToExcelFile)))
@@ -3279,7 +3373,11 @@ namespace TaskScheduling
                 pathToExcelFile = Console.ReadLine();
             }
 
-            Run_ACO(pathToExcelFile);
+            Console.WriteLine("Enter the stop time:");
+
+            long stopElapsedTime = Convert.ToInt64(Console.ReadLine());
+
+            Run_ACO(pathToExcelFile, stopElapsedTime);
 
 
             Console.ReadLine();
