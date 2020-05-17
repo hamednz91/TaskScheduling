@@ -31,7 +31,7 @@ namespace TaskScheduling
 
             public Sol()
             {
-
+                BatchesAllocatedToMachines = new List<Batch>();
             }
 
             public Sol(Sol sol)
@@ -602,7 +602,7 @@ namespace TaskScheduling
 
                     List<Batch> nonEmptyBatchesSortedByMeanUrgentC6 = noneEmptybatches;
 
-                    foreach (var batch in nonEmptyBatchesSortedByMeanUrgentC6)
+                    for (int bb = 0; bb < nonEmptyBatchesSortedByMeanUrgentC6.Count; bb++)
                     {
                         for (int b = 0; b < nonEmptyBatchesSortedByMeanUrgentC6.Count; b++)
                         {
@@ -630,26 +630,26 @@ namespace TaskScheduling
 
                         double T = T2 - T1;
 
-                        if (batch.Pbs[0] - T >= 0)
+                        if (nonEmptyBatchesSortedByMeanUrgentC6[bb].Pbs[0] - T >= 0)
                         {
-                            t1[minIndexT1] += batch.Pbs[0];
+                            t1[minIndexT1] += nonEmptyBatchesSortedByMeanUrgentC6[bb].Pbs[0];
 
-                            t2[minIndexT2] = t1[minIndexT1] + batch.Pbs[1];
+                            t2[minIndexT2] = t1[minIndexT1] + nonEmptyBatchesSortedByMeanUrgentC6[bb].Pbs[1];
                         }
                         else
                         {
                             t1[minIndexT1] = t2[minIndexT2];
 
-                            t2[minIndexT2] += batch.Pbs[1];
+                            t2[minIndexT2] += nonEmptyBatchesSortedByMeanUrgentC6[bb].Pbs[1];
                         }
 
                         t_Now = t1[minIndexT2];
 
-                        batch.machineNumber[0] = minIndexT1;
+                        nonEmptyBatchesSortedByMeanUrgentC6[bb].machineNumber[0] = minIndexT1;
 
-                        batch.machineNumber[1] = minIndexT2;
+                        nonEmptyBatchesSortedByMeanUrgentC6[bb].machineNumber[1] = minIndexT2;
 
-                        foreach (int j in batch.JobsIndice)
+                        foreach (int j in nonEmptyBatchesSortedByMeanUrgentC6[bb].JobsIndice)
                             Tj[j] = Math.Max((double)t2[minIndexT2] - d[j], 0.0);
 
                         T1 = t1.Min(a => a);
@@ -660,16 +660,17 @@ namespace TaskScheduling
 
                         for (int i = 0; i < nonEmptyBatchesSortedByMeanUrgentC6.Count; i++)
                         {
-                            if (nonEmptyBatchesSortedByMeanUrgentC6[i] != batch)
+                            if (i != bb)
                             {
 
-                                if (batch.Pbs[0] - T >= 0)
+                                if (nonEmptyBatchesSortedByMeanUrgentC6[i].Pbs[0] - T >= 0)
                                 {
                                     nonEmptyBatchesSortedByMeanUrgentC6[i].idleTime = 0;
                                 }
                                 else
                                 {
-                                    nonEmptyBatchesSortedByMeanUrgentC6[i].idleTime = T - batch.Pbs[0];
+                                    nonEmptyBatchesSortedByMeanUrgentC6[i].idleTime =
+                                        T - nonEmptyBatchesSortedByMeanUrgentC6[i].Pbs[0];
                                 }
                             }
                         }
@@ -1390,7 +1391,7 @@ namespace TaskScheduling
 
                     model.NumberOfNonEmptyBatches = nonEmptyBatches.Count;
 
-                    sol = Algorithm1(4, nonEmptyBatches, t1, t2, Tj, d, t_now);
+                    sol = Algorithm1(6, nonEmptyBatches, t1, t2, Tj, d, t_now);
 
                     model.DelayOfJobs = sol.Tj;
 
@@ -3360,8 +3361,8 @@ namespace TaskScheduling
 
             Console.Write("Enter the File Path: ");
 
-            //string pathToExcelFile = "D:\\129.xls";
-            string pathToExcelFile = Console.ReadLine();
+            string pathToExcelFile = "D:\\129.xls";
+            //string pathToExcelFile = Console.ReadLine();
 
 
             while ((!File.Exists(pathToExcelFile)))
@@ -3375,8 +3376,9 @@ namespace TaskScheduling
 
             Console.WriteLine("Enter the stop time:");
 
-            long stopElapsedTime = Convert.ToInt64(Console.ReadLine());
+            //long stopElapsedTime = Convert.ToInt64(Console.ReadLine());
 
+            long stopElapsedTime = 10000;
             Run_ACO(pathToExcelFile, stopElapsedTime);
 
 
