@@ -1669,8 +1669,8 @@ namespace TaskScheduling
 
                                     bool[] selectJobIndex2 = new bool[selectedBatchLength2];
 
-                                    do
-                                    {
+                                    //do
+                                    //{
                                         // int numberofSelectedJobfromBatch2 = selectJobIndex2.Count(item => item);
 
                                         selectedBatchIndex2 = r.Next(nonEmptyBatchesAfterOPs.Count);
@@ -1702,7 +1702,8 @@ namespace TaskScheduling
                                         if (!selectJobIndex2[jobIndex2])
                                             selectJobIndex2[jobIndex2] = true;
 
-                                    } while (batchSize1 > kMax || batchSize2 > kMax);
+                                    //}
+                                    if (batchSize1 > kMax || batchSize2 > kMax) break;
 
                                     int job1 = nonEmptyBatchesAfterOPs[selectedBatchIndex1].JobsIndice[jobIndex1];
                                     int job2 = nonEmptyBatchesAfterOPs[selectedBatchIndex2].JobsIndice[jobIndex2];
@@ -2660,8 +2661,8 @@ namespace TaskScheduling
                                     int jobIndex2 = -1;
 
 
-                                    do
-                                    {
+                                    //do
+                                    //{
                                         //do
                                         //{
 
@@ -2701,7 +2702,8 @@ namespace TaskScheduling
                                             nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1] +
                                             a2;
 
-                                    } while (batchSize1 > kMax || batchSize2 > kMax);
+                                //    }
+                                    if (batchSize1 > kMax || batchSize2 > kMax) break;
 
                                     //if (selectedBatchesOP9.Count(item => item) >= nonEmptyBatchesAfterOPs.Count - 1)
                                     //    break;
