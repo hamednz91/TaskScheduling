@@ -1484,8 +1484,8 @@ namespace TaskScheduling
 
                                 int selectedBatchIndex1OP6 = r.Next(BatchesGreaterThanKmin.Count);
 
-                                if (!selectbatchesOP6[selectedBatchIndex1OP6])
-                                    selectbatchesOP6[selectedBatchIndex1OP6] = true;
+                                if (!selectbatchesOP6[BatchesGreaterThanKmin[selectedBatchIndex1OP6].batchIndex])
+                                    selectbatchesOP6[BatchesGreaterThanKmin[selectedBatchIndex1OP6].batchIndex] = true;
 
                                 int selectedFamilyOP6 = BatchesGreaterThanKmin[selectedBatchIndex1OP6].Family;
 
