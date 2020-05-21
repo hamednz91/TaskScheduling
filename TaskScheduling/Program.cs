@@ -1851,7 +1851,8 @@ namespace TaskScheduling
                                     int jobIndex2OP9 = -1;
 
                                     int counterOP9 = 0;
-                                    while (counterOP9 < selectedBatchLength2OP9 && (batchSize1OP9 > kMax || batchSize2OP9 > kMax))
+
+                                    do
                                     {
 
                                         jobIndex2OP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].DueTime.IndexOf(
@@ -1860,21 +1861,24 @@ namespace TaskScheduling
                                                 .First());
 
                                         int a1OP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs.Sum() -
-                                                 nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1OP9];
+                                                    nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[
+                                                        jobIndex1OP9];
 
                                         batchSize1OP9 =
                                             nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[jobIndex2OP9] +
                                             a1OP9;
 
                                         int a2OP9 = nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs.Sum() -
-                                                 nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[jobIndex2OP9];
+                                                    nonEmptyBatchesAfterOPs[selectedBatchIndex2OP9].SizeOfJobs[
+                                                        jobIndex2OP9];
 
                                         batchSize2OP9 =
                                             nonEmptyBatchesAfterOPs[selectedBatchIndex1OP9].SizeOfJobs[jobIndex1OP9] +
                                             a2OP9;
 
 
-                                    }
+                                    } while (counterOP9 < selectedBatchLength2OP9 &&
+                                             (batchSize1OP9 > kMax || batchSize2OP9 > kMax));
 
                                     if (counterOP9 == selectedBatchLength2OP9 || selectedBatchesOP9.Count(item => item) >= nonEmptyBatchesAfterOPs.Count - 1)
                                         break;
