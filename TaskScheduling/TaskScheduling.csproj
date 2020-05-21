@@ -75,8 +75,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ant.cs" />
+    <Compile Include="Batch.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sol.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
