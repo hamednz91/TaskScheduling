@@ -65,7 +65,7 @@ namespace TaskScheduling
         {
 
             var excelFile = new ExcelQueryFactory(pathToExcelFile);
-            var sheetRows = excelFile.Worksheet("init").ToList();
+            var sheetRows = excelFile.Worksheet("init");
 
             int ww = 0;
             int kMin = 0;
@@ -99,7 +99,7 @@ namespace TaskScheduling
 
             #region Values Assignments
 
-            sheetRows = excelFile.Worksheet("arrays").ToList();
+            sheetRows = excelFile.Worksheet("arrays");
 
             List<int> wT = new List<int>();
             List<double> p1 = new List<double>();
@@ -127,16 +127,16 @@ namespace TaskScheduling
             dj = dd.ToArray();
             sigmaj = sigj.ToArray();
 
-            sheetRows = excelFile.Worksheet("hj").ToList();
+            sheetRows = excelFile.Worksheet("hj");
 
-            for (int i = 0; i < sheetRows.Count; i++)
+            int i = 0;
+            foreach (var row in sheetRows)
             {
-                ;
-                for (int j = 0; j < sheetRows[i].Count; j++)
+                for (int j = 0; j < row.Count; j++)
                 {
-                    hjf[j, i] = int.Parse(sheetRows[i][j]);
+                    hjf[j, i] = int.Parse(row[j]);
                 }
-
+                i++;
             }
 
             #endregion
