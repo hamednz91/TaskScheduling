@@ -55,7 +55,7 @@ namespace TaskScheduling
             this.IgnoranceBinary = model.IgnoranceBinary;
             this.DelayOfJobs = model.DelayOfJobs;
         }
-        
+
         /// <summary>
         /// Model from File
         /// </summary>
@@ -65,7 +65,7 @@ namespace TaskScheduling
         {
 
             var excelFile = new ExcelQueryFactory(pathToExcelFile);
-            var sheetRows = excelFile.Worksheet("init").Select(a => a);
+            var sheetRows = excelFile.Worksheet("init").ToList();
 
             int ww = 0;
             int kMin = 0;
@@ -96,10 +96,10 @@ namespace TaskScheduling
             int[,] hjf = new int[numberOfFamilies, numberOfProducts];
             int[] sigmaj = new int[numberOfProducts];
             int[] PiJ = new int[numberOfProducts];
-            
+
             #region Values Assignments
 
-            sheetRows = excelFile.Worksheet("arrays").Select(a => a);
+            sheetRows = excelFile.Worksheet("arrays").ToList();
 
             List<int> wT = new List<int>();
             List<double> p1 = new List<double>();
@@ -127,14 +127,16 @@ namespace TaskScheduling
             dj = dd.ToArray();
             sigmaj = sigj.ToArray();
 
-            sheetRows = excelFile.Worksheet("hj").Select(a => a);
+            sheetRows = excelFile.Worksheet("hj").ToList();
 
-            int f = 0;
-            foreach (var row in sheetRows)
+            for (int i = 0; i < sheetRows.Count; i++)
             {
-                for (int j = 0; j < row.Count; j++)
-                    hjf[f, j] = int.Parse(row[j]);
-                f++;
+                ;
+                for (int j = 0; j < sheetRows[i].Count; j++)
+                {
+                    hjf[j, i] = int.Parse(sheetRows[i][j]);
+                }
+
             }
 
             #endregion
